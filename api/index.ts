@@ -1,5 +1,5 @@
-import { app } from "../server/index.js";
-import { registerRoutes } from "../server/routes.js";
+import { app } from "../server/index";
+import { registerRoutes } from "../server/routes";
 
 let routesRegistered = false;
 
