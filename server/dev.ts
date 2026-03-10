@@ -1,10 +1,11 @@
 import 'dotenv/config';
 import { Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-import { log } from "./utils";
+import { setupVite, log } from "./vite";
 import app from "./app";
 
-async function startServer() {
+// Dev server entry point - includes Vite HMR
+async function startDevServer() {
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -13,14 +14,12 @@ async function startServer() {
     res.status(status).json({ message });
   });
 
+  await setupVite(app, server);
+
   const port = parseInt(process.env.PORT || '5000', 10);
   server.listen({ port, host: "0.0.0.0" }, () => {
-    log(`API server running on port ${port}`);
+    log(`Dev server running on port ${port}`);
   });
-
-  return server;
 }
 
-startServer();
-
-export { app };
+startDevServer();
