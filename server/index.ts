@@ -1,7 +1,6 @@
 import 'dotenv/config';
 import { Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic } from "./vite";
 import { log } from "./utils";
 import app from "./app";
 
@@ -13,35 +12,32 @@ export async function startServer() {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
     res.status(status).json({ message });
-    throw err;
   });
 
-  if (app.get("env") === "development") {
+  // Only serve frontend in development mode (local dev with Vite)
+  // On Render/production, this is an API-only server
+  if (process.env.NODE_ENV === "development") {
+    const { setupVite } = await import("./vite");
     await setupVite(app, server);
-  } else {
-    serveStatic(app);
+  } else if (!process.env.RENDER) {
+    // Only serve static files if NOT on Render (since Render = API only)
+    try {
+      const { serveStatic } = await import("./vite");
+      serveStatic(app);
+    } catch (e) {
+      log("Static file serving skipped (API-only mode)");
+    }
   }
 
   const port = parseInt(process.env.PORT || '5000', 10);
-  const listenOpts: any = {
-    port,
-    host: "0.0.0.0",
-  };
-
-  if (process.platform !== "win32") {
-    listenOpts.reusePort = true;
-  }
-
-  server.listen(listenOpts, () => {
+  server.listen({ port, host: "0.0.0.0" }, () => {
     log(`serving on port ${port}`);
   });
   
   return server;
 }
 
-// Only run automatically if not on Vercel and not being imported
-if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
-  startServer();
-}
+// Always start the server (Render, local dev, etc.)
+startServer();
 
 export { app };
