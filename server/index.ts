@@ -4,6 +4,7 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
+export { app };
 
 declare module 'http' {
   interface IncomingMessage {
@@ -47,7 +48,8 @@ app.use((req, res, next) => {
   next();
 });
 
-(async () => {
+// IMPORTANT: We move the logic into a function that can be called or run
+export async function startServer() {
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -58,27 +60,18 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || '5000', 10);
   const listenOpts: any = {
     port,
     host: "0.0.0.0",
   };
 
-  // reusePort is not supported on some platforms (notably Windows).
-  // Only set it when the platform supports it.
   if (process.platform !== "win32") {
     listenOpts.reusePort = true;
   }
@@ -86,4 +79,11 @@ app.use((req, res, next) => {
   server.listen(listenOpts, () => {
     log(`serving on port ${port}`);
   });
-})();
+  
+  return server;
+}
+
+// Only run automatically if not on Vercel and not being imported
+if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
+  startServer();
+}
