@@ -1,5 +1,10 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
+// Production: use Render backend. Development: use local server.
+const API_BASE = import.meta.env.PROD
+  ? "https://adgen2.onrender.com"
+  : (import.meta.env.VITE_API_BASE || "");
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
@@ -12,13 +17,10 @@ export async function apiRequest<T = any>(
   url: string,
   data?: unknown | undefined,
 ): Promise<T> {
-  const apiBase = (import.meta as any).env?.VITE_API_BASE || '';
-  
-  const res = await fetch(apiBase + url, {
+  const res = await fetch(API_BASE + url, {
     method,
     headers: data ? { "Content-Type": "application/json" } : {},
     body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
   });
 
   await throwIfResNotOk(res);
@@ -31,11 +33,8 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const apiBase = (import.meta as any).env?.VITE_API_BASE || '';
     const url = queryKey.join("/") as string;
-    const res = await fetch(apiBase + (url.startsWith('/') ? url : '/' + url), {
-      credentials: "include",
-    });
+    const res = await fetch(API_BASE + (url.startsWith('/') ? url : '/' + url));
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
       return null;
