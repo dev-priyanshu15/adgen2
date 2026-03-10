@@ -1,7 +1,4 @@
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { X, TrendingUp, Users, Target, Eye } from 'lucide-react';
+import { TrendingUp, Users, Target, Eye } from 'lucide-react';
 import type { AdCopy } from '@shared/schema';
 
 interface ComparisonViewProps {
@@ -31,19 +28,38 @@ export function ComparisonView({ adCopy, onClose }: ComparisonViewProps) {
   const { baselineMetrics, variantMetrics } = getMockMetrics();
 
   const MetricCard = ({ icon: Icon, label, value, isWinner }: any) => (
-    <div className={`p-3 rounded-lg ${isWinner ? 'bg-primary/10 border border-primary/30' : 'bg-background/50'} transition-all`}>
-      <div className="flex items-center justify-between mb-1">
-        <div className="flex items-center gap-2">
-          <Icon className="w-3 h-3 text-muted-foreground" />
-          <span className="text-xs text-muted-foreground">{label}</span>
-        </div>
+    <div
+      className="p-3 rounded-md transition-colors"
+      style={{
+        background: isWinner ? 'var(--accent-dim)' : 'var(--surface2)',
+        border: isWinner ? '1px solid var(--accent)' : '1px solid transparent',
+      }}
+    >
+      <div className="flex items-center gap-2 mb-1">
+        <Icon className="w-3 h-3" style={{ color: 'var(--text-dim)' }} />
+        <span style={{
+          fontFamily: "'JetBrains Mono', monospace",
+          fontSize: 10,
+          fontWeight: 600,
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase' as const,
+          color: 'var(--text-dim)',
+        }}>{label}</span>
         {isWinner && (
-          <Badge variant="secondary" className="text-xs px-2 py-0.5">
-            Winner
-          </Badge>
+          <span style={{
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: 9,
+            color: 'var(--accent)',
+            marginLeft: 'auto',
+          }}>WINNER</span>
         )}
       </div>
-      <p className="text-lg font-bold text-foreground">{value}</p>
+      <p style={{
+        fontFamily: "'JetBrains Mono', monospace",
+        fontSize: isWinner ? 28 : 18,
+        fontWeight: 700,
+        color: isWinner ? 'var(--accent)' : 'var(--text)',
+      }}>{value}</p>
     </div>
   );
 
@@ -59,110 +75,91 @@ export function ComparisonView({ adCopy, onClose }: ComparisonViewProps) {
   const viewsWinner = findWinner(baselineMetrics.views, variantMetrics.map(v => v.views));
 
   return (
-    <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-xl overflow-y-auto animate-fade-in">
-      <div className="min-h-screen p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
+    <div className="animate-fade-in">
+      <div className="w-full">
+        <div className="w-full">
+          <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-3xl font-bold text-foreground mb-2">A/B Test Comparison</h2>
-              <p className="text-muted-foreground">Compare performance metrics across variations</p>
+              <h2 className="text-lg font-semibold mb-1" style={{ color: 'var(--text)' }}>A/B Test Comparison</h2>
+              <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Compare performance metrics across variations</p>
             </div>
-            <Button
-              onClick={onClose}
-              variant="ghost"
-              data-testid="button-close-comparison"
-              className="hover-elevate active-elevate-2"
-            >
-              <X className="w-5 h-5" />
-            </Button>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <Card className="p-6 backdrop-blur-xl bg-card/80 border-card-border shadow-2xl shadow-primary/10" data-testid="card-baseline">
+          <div className="grid grid-cols-1 lg:grid-cols-2 mb-6" style={{ gap: '4%' }}>
+            <div
+              className="p-6 rounded-lg"
+              style={{ background: 'var(--surface)', border: '1px solid var(--border-raw)' }}
+              data-testid="card-baseline"
+            >
               <div className="mb-4">
-                <Badge className="mb-2">Baseline</Badge>
-                <h3 className="text-xl font-bold text-foreground mb-2">{adCopy.headline}</h3>
-                <p className="text-sm text-muted-foreground mb-2">{adCopy.description}</p>
-                <div className="inline-flex items-center px-4 py-2 rounded-lg bg-primary text-primary-foreground font-semibold text-sm">
+                <span
+                  className="inline-block px-2 py-1 rounded text-xs mb-2"
+                  style={{
+                    fontFamily: "'JetBrains Mono', monospace",
+                    fontSize: 10,
+                    background: 'var(--accent-dim)',
+                    color: 'var(--accent)',
+                  }}
+                >BASELINE</span>
+                <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text)' }}>{adCopy.headline}</h3>
+                <p className="text-sm mb-2" style={{ color: 'var(--text-muted)' }}>{adCopy.description}</p>
+                <span
+                  className="inline-block px-3 py-1.5 rounded-md text-sm font-medium"
+                  style={{ background: 'var(--accent)', color: '#fff' }}
+                >
                   {adCopy.callToAction}
-                </div>
+                </span>
               </div>
 
-              <div className="space-y-3 mt-6">
-                <MetricCard 
-                  icon={TrendingUp} 
-                  label="CTR" 
-                  value={`${baselineMetrics.ctr.toFixed(2)}%`} 
-                  isWinner={ctrWinner === 0}
-                />
-                <MetricCard 
-                  icon={Users} 
-                  label="Engagement" 
-                  value={`${baselineMetrics.engagement.toFixed(1)}%`} 
-                  isWinner={engagementWinner === 0}
-                />
-                <MetricCard 
-                  icon={Target} 
-                  label="Conversion" 
-                  value={`${baselineMetrics.conversion.toFixed(2)}%`} 
-                  isWinner={conversionWinner === 0}
-                />
-                <MetricCard 
-                  icon={Eye} 
-                  label="Total Views" 
-                  value={baselineMetrics.views.toLocaleString()} 
-                  isWinner={viewsWinner === 0}
-                />
+              <div className="space-y-2 mt-6">
+                <MetricCard icon={TrendingUp} label="CTR" value={`${baselineMetrics.ctr.toFixed(2)}%`} isWinner={ctrWinner === 0} />
+                <MetricCard icon={Users} label="Engagement" value={`${baselineMetrics.engagement.toFixed(1)}%`} isWinner={engagementWinner === 0} />
+                <MetricCard icon={Target} label="Conversion" value={`${baselineMetrics.conversion.toFixed(2)}%`} isWinner={conversionWinner === 0} />
+                <MetricCard icon={Eye} label="Total Views" value={baselineMetrics.views.toLocaleString()} isWinner={viewsWinner === 0} />
               </div>
-            </Card>
+            </div>
 
             {adCopy.variations.map((variation, index) => (
-              <Card 
-                key={index} 
-                className="p-6 backdrop-blur-xl bg-card/80 border-card-border shadow-2xl shadow-primary/10"
+              <div
+                key={index}
+                className="p-6 rounded-lg"
+                style={{ background: 'var(--surface)', border: '1px solid var(--border-raw)' }}
                 data-testid={`card-variation-${index}`}
               >
                 <div className="mb-4">
-                  <Badge variant="secondary" className="mb-2">Variation {index + 1}</Badge>
-                  <h3 className="text-xl font-bold text-foreground mb-2">{variation}</h3>
-                  <p className="text-sm text-muted-foreground mb-2">{adCopy.description}</p>
-                  <div className="inline-flex items-center px-4 py-2 rounded-lg bg-primary text-primary-foreground font-semibold text-sm">
+                  <span
+                    className="inline-block px-2 py-1 rounded text-xs mb-2"
+                    style={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: 10,
+                      background: 'var(--surface2)',
+                      color: 'var(--text-muted)',
+                    }}
+                  >VARIATION {index + 1}</span>
+                  <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text)' }}>{variation}</h3>
+                  <p className="text-sm mb-2" style={{ color: 'var(--text-muted)' }}>{adCopy.description}</p>
+                  <span
+                    className="inline-block px-3 py-1.5 rounded-md text-sm font-medium"
+                    style={{ background: 'var(--accent)', color: '#fff' }}
+                  >
                     {adCopy.callToAction}
-                  </div>
+                  </span>
                 </div>
 
-                <div className="space-y-3 mt-6">
-                  <MetricCard 
-                    icon={TrendingUp} 
-                    label="CTR" 
-                    value={`${variantMetrics[index].ctr.toFixed(2)}%`} 
-                    isWinner={ctrWinner === index + 1}
-                  />
-                  <MetricCard 
-                    icon={Users} 
-                    label="Engagement" 
-                    value={`${variantMetrics[index].engagement.toFixed(1)}%`} 
-                    isWinner={engagementWinner === index + 1}
-                  />
-                  <MetricCard 
-                    icon={Target} 
-                    label="Conversion" 
-                    value={`${variantMetrics[index].conversion.toFixed(2)}%`} 
-                    isWinner={conversionWinner === index + 1}
-                  />
-                  <MetricCard 
-                    icon={Eye} 
-                    label="Total Views" 
-                    value={variantMetrics[index].views.toLocaleString()} 
-                    isWinner={viewsWinner === index + 1}
-                  />
+                <div className="space-y-2 mt-6">
+                  <MetricCard icon={TrendingUp} label="CTR" value={`${variantMetrics[index].ctr.toFixed(2)}%`} isWinner={ctrWinner === index + 1} />
+                  <MetricCard icon={Users} label="Engagement" value={`${variantMetrics[index].engagement.toFixed(1)}%`} isWinner={engagementWinner === index + 1} />
+                  <MetricCard icon={Target} label="Conversion" value={`${variantMetrics[index].conversion.toFixed(2)}%`} isWinner={conversionWinner === index + 1} />
+                  <MetricCard icon={Eye} label="Total Views" value={variantMetrics[index].views.toLocaleString()} isWinner={viewsWinner === index + 1} />
                 </div>
-              </Card>
+              </div>
             ))}
           </div>
 
-          <div className="text-center text-xs text-muted-foreground">
-            <p>* Metrics are simulated for demonstration purposes</p>
+          <div className="text-center mt-6">
+            <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--text-dim)', letterSpacing: '0.04em' }}>
+              * METRICS ARE SIMULATED FOR DEMONSTRATION PURPOSES
+            </p>
           </div>
         </div>
       </div>

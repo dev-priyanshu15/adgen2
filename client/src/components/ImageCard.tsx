@@ -10,10 +10,7 @@ interface ImageCardProps {
 }
 
 export function ImageCard({ imageUrl, isLoading, delay = 0 }: ImageCardProps) {
-  const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
-  
-  console.log('ImageCard render:', { imageUrl, isLoading, imageLoaded, imageError });
   
   const handleDownload = () => {
     if (!imageUrl) return;
@@ -55,20 +52,23 @@ export function ImageCard({ imageUrl, isLoading, delay = 0 }: ImageCardProps) {
             <p className="text-sm text-muted-foreground">Generating image...</p>
           </div>
         ) : imageUrl ? (
+          imageError ? (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-4 text-center">
+              <ImageIcon className="w-12 h-12 text-muted-foreground opacity-50" />
+              <p className="text-sm text-muted-foreground">Image could not be loaded</p>
+              <Button size="sm" variant="outline" onClick={() => setImageError(false)}>
+                Retry
+              </Button>
+            </div>
+          ) : (
           <img
             src={imageUrl}
             alt="Generated ad visual"
             className="w-full h-full object-cover"
             data-testid="img-generated"
-            onLoad={() => {
-              console.log('[ImageCard] Image loaded successfully:', imageUrl);
-              setImageLoaded(true);
-            }}
-            onError={(e) => {
-              console.error('[ImageCard] Image failed to load:', imageUrl, e);
-              setImageError(true);
-            }}
+            onError={() => setImageError(true)}
           />
+          )
         ) : (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-muted-foreground">
             <ImageIcon className="w-12 h-12 opacity-50" />

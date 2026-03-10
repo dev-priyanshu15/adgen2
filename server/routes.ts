@@ -14,6 +14,7 @@ import {
   videoScriptRequestSchema,
   newspaperAdRequestSchema,
   socialPostsRequestSchema,
+  eventPosterRequestSchema,
 } from "@shared/schema";
 
 const groq = new Groq({
@@ -34,6 +35,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/health", (req, res) => {
     console.log("Health check endpoint called");
     res.json({ status: "ok", timestamp: new Date().toISOString(), version: "1.0.0" });
+  });
+
+  // Image proxy - fetches external image and streams it (avoids CORS issues in browser)
+  app.get("/api/image/proxy", async (req, res) => {
+    const url = req.query.url as string;
+    if (!url || typeof url !== "string") {
+      return res.status(400).json({ error: "Missing url query parameter" });
+    }
+    const allowedHosts = [
+      "image.pollinations.ai",
+      "image.lexica.art",
+      "lexica.art",
+      "lexica-serve-encoded-images.sharif.workers.dev",
+      "picsum.photos",
+      "images.unsplash.com",
+      "source.unsplash.com",
+    ];
+    let parsed: URL;
+    try {
+      parsed = new URL(url);
+    } catch {
+      return res.status(400).json({ error: "Invalid url" });
+    }
+    if (!allowedHosts.includes(parsed.hostname)) {
+      return res.status(403).json({ error: "Domain not allowed" });
+    }
+    try {
+      const resp = await axios.get(url, {
+        responseType: "arraybuffer",
+        timeout: 90000,
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          Accept: "image/*,*/*",
+        },
+      });
+      const ct = resp.headers["content-type"] || "image/png";
+      res.setHeader("Content-Type", ct);
+      res.setHeader("Cache-Control", "public, max-age=86400");
+      res.send(Buffer.from(resp.data));
+    } catch (err) {
+      console.error("[IMG-PROXY] Fetch failed, using Picsum fallback:", err instanceof Error ? err.message : err);
+      try {
+        const seed = Math.floor(Math.random() * 1000000);
+        const fallbackResp = await axios.get(`https://picsum.photos/seed/${seed}/1024/1024`, {
+          responseType: "arraybuffer",
+          timeout: 15000,
+          headers: { "User-Agent": "Mozilla/5.0 Chrome/120.0", Accept: "image/*" },
+        });
+        res.setHeader("Content-Type", fallbackResp.headers["content-type"] || "image/jpeg");
+        res.setHeader("Cache-Control", "public, max-age=3600");
+        res.send(Buffer.from(fallbackResp.data));
+      } catch {
+        res.status(502).json({ error: "Failed to fetch image" });
+      }
+    }
   });
 
   app.post("/api/ad/generate", async (req, res) => {
@@ -93,7 +149,7 @@ Example format:
       console.log("[AD-GEN] Groq response received");
       const responseText = completion.choices[0]?.message?.content || "";
       console.log("[AD-GEN] Response text:", responseText.substring(0, 200));
-      
+
       let adData;
       try {
         adData = JSON.parse(responseText);
@@ -141,114 +197,63 @@ Example format:
     }
   });
 
-  app.post("/api/image/generate", async (req, res) => {
-    // FREE AI Image Generation - Multiple free services
-    // Always returns an actual generated image (not placeholders)
-    
+  app.post('/api/image/generate', async (req, res) => {
     try {
-      // Get prompt from request
       let prompt: string;
+      let productName = req.body?.productName || '';
       try {
         const validatedData = imageGenerationRequestSchema.parse(req.body);
         prompt = validatedData.prompt;
+        if (validatedData.productName) productName = validatedData.productName;
       } catch {
-        prompt = typeof req.body?.prompt === 'string' 
-          ? req.body.prompt 
-          : "professional product photography";
+        prompt = typeof req.body?.prompt === 'string'
+          ? req.body.prompt
+          : 'professional product photography';
       }
 
-      // Enhance prompt for better results
-      const enhancedPrompt = prompt + ", professional advertising photography, high quality, 4k, commercial grade";
-      
-      // Try 1: Lexica.art API (free, no key needed) - searches existing AI-generated images
-      try {
-        console.log("[IMG-GEN] Attempting Lexica.art search (free, fast)...");
-        const lexicaResponse = await axios.post(
-          "https://lexica.art/api/v1/search",
-          { q: prompt, source: "search" },
-          { timeout: 10000 }
-        );
-        
-        if (lexicaResponse.data?.images && lexicaResponse.data.images.length > 0) {
-          const imageUrl = lexicaResponse.data.images[0].src;
-          console.log("[IMG-GEN] Found image on Lexica.art");
-          return res.json({ imageUrl });
+      console.log('[IMG-GEN] Generating with OpenRouter Free FLUX...');
+
+      // Build a prompt that forces the subject to be the product explicitly
+      const finalPrompt = productName
+        ? `A hyper-realistic professional product photography shot of a ${productName}. ${prompt}, professional advertising photography, high quality, 4k, commercial`
+        : `${prompt}, professional advertising photography, high quality, 4k, commercial`;
+
+      const response = await axios.post(
+        'https://openrouter.ai/api/v1/chat/completions',
+        {
+          model: 'black-forest-labs/flux.2-klein-4b',
+          messages: [{ role: 'user', content: finalPrompt }],
+          modalities: ['image']
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://adgenius.app',
+            'X-Title': 'AdGenius',
+          },
+          timeout: 60000,
         }
-      } catch (lexicaError) {
-        console.log("[IMG-GEN] Lexica.art search failed, trying other services...");
+      );
+
+      // Extract image URL from the chat completion response
+      const imageUrl = response.data?.choices?.[0]?.message?.images?.[0]?.image_url?.url ||
+        response.data?.choices?.[0]?.message?.images?.[0]?.url;
+
+      if (!imageUrl) {
+        console.error('[IMG-GEN] No image in response:', JSON.stringify(response.data));
+        throw new Error('No image URL in response');
       }
 
-      // Try 2: Pollinations AI with different URL format (generates actual images)
-      // Note: Pollinations AI is free and doesn't require an API key for basic usage
-      // Optional POLLINATIONS_API_KEY can be used for higher rate limits or premium features
-      try {
-        console.log("[IMG-GEN] Attempting Pollinations AI generation...");
-        const seed = Math.floor(Math.random() * 1000000);
-        // Use the working Pollinations URL format that actually generates
-        const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1024&height=1024&seed=${seed}&model=flux&nologo=true`;
-        
-        // Configure headers - include API key if available (optional)
-        const headers: Record<string, string> = {};
-        if (process.env.POLLINATIONS_API_KEY) {
-          headers['Authorization'] = `Bearer ${process.env.POLLINATIONS_API_KEY}`;
-          console.log("[IMG-GEN] Using Pollinations AI with API key");
-        }
-        
-        // Fetch the image server-side to ensure it's generated (not placeholder)
-        const imageResponse = await axios.get(pollinationsUrl, {
-          responseType: 'arraybuffer',
-          timeout: 120000, // 2 minutes - Pollinations needs time to generate
-          validateStatus: (status) => status >= 200 && status < 500,
-          headers,
-        });
+      console.log('[IMG-GEN] Success with OpenRouter Free Model');
+      return res.json({ imageUrl });
 
-        // Check if we got actual image data (not HTML placeholder)
-        if (imageResponse.data && imageResponse.data.length > 5000) {
-          // Check content type - if it's HTML, it's probably a placeholder
-          const contentType = imageResponse.headers['content-type'] || '';
-          if (contentType.startsWith('image/')) {
-            const imageBuffer = Buffer.from(imageResponse.data);
-            const base64Image = imageBuffer.toString('base64');
-            const imageUrl = `data:${contentType};base64,${base64Image}`;
-            console.log(`[IMG-GEN] Successfully generated image with Pollinations AI (${imageBuffer.length} bytes)`);
-            return res.json({ imageUrl });
-          }
-        }
-      } catch (pollinationsError) {
-        console.log("[IMG-GEN] Pollinations fetch failed, trying fallback...");
-      }
-
-      // Try 3: Unsplash (existing photos, not AI-generated but free and fast)
-      try {
-        console.log("[IMG-GEN] Attempting Unsplash (fallback - existing photos)...");
-        const keywords = prompt.split(/\s+/).slice(0, 3).join(' ').toLowerCase() || 'product';
-        const unsplashUrl = `https://source.unsplash.com/1024x1024/?${encodeURIComponent(keywords)}`;
-        
-        // Test if URL works
-        const testResponse = await axios.head(unsplashUrl, { timeout: 5000 });
-        if (testResponse.status === 200) {
-          console.log("[IMG-GEN] Using Unsplash (existing photo, not AI-generated)");
-          return res.json({ imageUrl: unsplashUrl });
-        }
-      } catch (unsplashError) {
-        console.log("[IMG-GEN] Unsplash failed...");
-      }
-
-      // Final fallback: Return Pollinations URL (browser will try to load it)
-      // Even if server-side fetch failed, the URL might work in browser
-      const seed = Math.floor(Math.random() * 1000000);
-      const fallbackUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1024&height=1024&seed=${seed}&model=flux&nologo=true`;
-      console.log("[IMG-GEN] Returning Pollinations URL as final fallback");
-      return res.json({ imageUrl: fallbackUrl });
-      
-    } catch (error) {
-      // Last resort: Simple Pollinations URL
-      console.error("[IMG-GEN] All methods failed, using simple fallback:", error instanceof Error ? error.message : error);
-      const fallbackPrompt = typeof req.body?.prompt === 'string' 
-        ? req.body.prompt 
-        : "professional product photography";
-      const fallbackUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(fallbackPrompt)}?width=1024&height=1024&model=flux`;
-      return res.json({ imageUrl: fallbackUrl });
+    } catch (error: any) {
+      console.error('[IMG-GEN] OpenRouter failed:', error.response?.data || error.message);
+      const seed = Math.floor(Math.random() * 1000);
+      return res.json({
+        imageUrl: `https://picsum.photos/seed/${seed}/1024/1024`
+      });
     }
   });
 
@@ -398,7 +403,7 @@ Example format:
       });
 
       const responseText = completion.choices[0]?.message?.content || "";
-      
+
       let videoData;
       try {
         videoData = JSON.parse(responseText);
@@ -473,7 +478,7 @@ Example format:
       });
 
       const responseText = completion.choices[0]?.message?.content || "";
-      
+
       let adData;
       try {
         adData = JSON.parse(responseText);
@@ -543,7 +548,7 @@ Example format:
       });
 
       const responseText = completion.choices[0]?.message?.content || "";
-      
+
       let postsData;
       try {
         postsData = JSON.parse(responseText);
@@ -563,6 +568,117 @@ Example format:
         error: "Failed to generate social posts",
         message: error instanceof Error ? error.message : "Unknown error",
       });
+    }
+  });
+
+  app.post("/api/event/poster", async (req, res) => {
+    console.log("[EVENT-POSTER] Request received:", req.body);
+    try {
+      const validatedData = eventPosterRequestSchema.parse(req.body);
+      const { eventName, eventDate, eventTime, venue, description, theme, primaryColor } = validatedData;
+
+      const prompt = `You are a high-end graphic designer and copywriter. Generate structured content for a professional event poster.
+      
+      Event: ${eventName}
+      Date: ${eventDate}
+      Time: ${eventTime}
+      Venue: ${venue}
+      Description: ${description}
+      Theme: ${theme}
+      Primary Color: ${primaryColor}
+
+      Return ONLY a valid JSON object with these exact fields:
+      - headline: Catchy and bold event title (max 8 words)
+      - tagline: Enticing sub-headline (max 12 words)
+      - dateTimeBlock: Formatted date and time string
+      - venueBlock: Formatted venue address
+      - descriptionBlock: Concise, punchy event description (max 25 words)
+      - highlightPoints: Array of exactly 3 key highlights or features of the event
+      - ctaText: Short action-oriented button text (e.g., "Join the Summit", "Get Tickets")
+      - colorScheme: Object with { primary, secondary, accent } hex codes matching the ${theme} theme and ${primaryColor} color.
+      - layoutSuggestion: Briefly describe the recommended layout (max 10 words).
+      - backgroundStyle: One sentence describing the ideal AI background image prompt.
+
+      Return ONLY raw JSON. No markdown. No chatter.`;
+
+      console.log("[EVENT-POSTER] Calling Groq with JSON mode...");
+      const completion = await groq.chat.completions.create({
+        messages: [{ role: "user", content: prompt }],
+        model: "llama-3.1-8b-instant",
+        temperature: 0.7,
+        max_tokens: 1000,
+        response_format: { type: "json_object" }
+      });
+
+      let responseText = completion.choices[0]?.message?.content || "";
+      console.log("[EVENT-POSTER] Raw response length:", responseText.length);
+      
+      let posterData;
+      try {
+        // First try direct parse
+        posterData = JSON.parse(responseText);
+      } catch (e) {
+        console.log("[EVENT-POSTER] Direct parse failed, trying cleanup...");
+        // Clean up common JSON issues (trailing commas, comments, etc.)
+        const cleaned = responseText
+          .replace(/,\s*([\]}])/g, '$1') // Remove trailing commas before ] or }
+          .match(/\{[\s\S]*\}/); // Extract only the JSON part
+        
+        if (cleaned) {
+          try {
+            posterData = JSON.parse(cleaned[0]);
+          } catch (innerError) {
+            console.error("[EVENT-POSTER] Cleanup parse failed:", innerError);
+            throw new Error("Invalid JSON structure from AI");
+          }
+        } else {
+          throw new Error("No JSON found in AI response");
+        }
+      }
+
+      if (!posterData) throw new Error("Failed to generate poster data");
+
+      // Generate dynamic background image using OpenRouter Flux
+      const bgPrompt = posterData.backgroundStyle || `${eventName} ${theme} event background, professional photography`;
+      console.log("[EVENT-POSTER] Generating background image with OpenRouter Flux...");
+      
+      try {
+        const imageResponse = await axios.post(
+          'https://openrouter.ai/api/v1/chat/completions',
+          {
+            model: 'black-forest-labs/flux.2-klein-4b',
+            messages: [{ role: 'user', content: bgPrompt + ", vertical orientation, professional event background, high quality, 4k" }],
+            modalities: ['image']
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+              'Content-Type': 'application/json',
+              'HTTP-Referer': 'https://adgenius.app',
+              'X-Title': 'AdGenius',
+            },
+            timeout: 60000,
+          }
+        );
+
+        const imageUrl = imageResponse.data?.choices?.[0]?.message?.images?.[0]?.image_url?.url ||
+          imageResponse.data?.choices?.[0]?.message?.images?.[0]?.url;
+
+        if (imageUrl) {
+          console.log("[EVENT-POSTER] Image Success:", imageUrl);
+          posterData.imageUrl = imageUrl;
+        }
+      } catch (imgError: any) {
+        console.error("[EVENT-POSTER] Image Gen failed, using fallback:", imgError.message);
+        // Fallback or just leave as undefined to use frontend static fallbacks
+      }
+
+      console.log("[EVENT-POSTER] Success");
+      res.json(posterData);
+
+    } catch (error: any) {
+      console.error("[EVENT-POSTER] Error:", error.message);
+      res.status(500).json({ error: "Failed to generate event poster", message: error.message });
     }
   });
 
@@ -596,6 +712,8 @@ Make it eye-catching, modern, and suitable for social media promotion.`;
       });
     }
   });
+
+
 
   app.post("/api/post/generate", async (req, res) => {
     try {
@@ -648,41 +766,87 @@ Make it catchy, concise, and perfect for platforms like Twitter, Instagram, or L
 
   app.post("/api/batch/generate-images-video", async (req, res) => {
     try {
-      const { prompt, caption, productName, headline, description, visualPrompts } = req.body;
+      const { prompt, caption, headline, productName } = req.body;
 
-      if (!prompt) {
-        return res.status(400).json({ error: "Prompt is required" });
+      if (!prompt && !headline && !productName) {
+        return res.status(400).json({ error: 'Prompt or productName is required' });
       }
 
-      // Generate 10 images using the prompt
-      const enhancedPrompt = `${prompt}, professional advertising photography, high quality, 4k, commercial grade`;
-      const imageUrls: string[] = [];
+      // If we have a productName, use it as the solid foundation for all variations
+      let baseSubject = productName
+        ? `A hyper-realistic professional product photography shot of a ${productName}`
+        : (prompt || headline || 'professional product photography').split(',')[0].trim();
 
-      // Use Pollinations AI (fast, free) - generate image URLs instantly
-      // Each image gets a unique seed for variation, images generate on-demand when browser loads them
-      for (let i = 0; i < 10; i++) {
+      const basePrompt = productName && prompt
+        ? `${baseSubject}. ${prompt.split(',')[0].trim()}`
+        : baseSubject;
+
+      const variations = [
+        basePrompt,
+        `${basePrompt} close up shot`,
+        `${basePrompt} lifestyle photography`,
+        `${basePrompt} white background studio`,
+        `${basePrompt} outdoor natural light`,
+        `${basePrompt} professional advertisement`,
+        `${basePrompt} product showcase`,
+        `${basePrompt} commercial photography`,
+        `${basePrompt} minimalist style`,
+        `${basePrompt} premium quality`,
+      ]
+
+      console.log('[BATCH] Generating 10 images with OpenRouter Free Model...');
+
+      const imagePromises = variations.map(async (variationPrompt, i) => {
         try {
-          // Pollinations AI URL format - generates images when URL is accessed
-          const seed = Math.floor(Math.random() * 1000000);
-          const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1024&height=1024&seed=${seed}&model=flux-pro&nologo=true&enhance=true`;
-          imageUrls.push(pollinationsUrl);
-        } catch (err) {
-          console.error(`[BATCH] Error generating image ${i + 1}:`, err);
-          // Continue with remaining images even if one fails
+          const response = await axios.post(
+            'https://openrouter.ai/api/v1/chat/completions',
+            {
+              model: 'black-forest-labs/flux.2-klein-4b',
+              messages: [{ role: 'user', content: variationPrompt + ', professional advertising photography, high quality' }],
+              modalities: ['image']
+            },
+            {
+              headers: {
+                'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+                'Content-Type': 'application/json',
+                'HTTP-Referer': 'https://adgenius.app',
+                'X-Title': 'AdGenius',
+              },
+              timeout: 60000,
+            }
+          );
+
+          return response.data?.choices?.[0]?.message?.images?.[0]?.image_url?.url ||
+            response.data?.choices?.[0]?.message?.images?.[0]?.url ||
+            `https://picsum.photos/seed/${Date.now() + i}/1024/1024`;
+
+        } catch (e: any) {
+          console.error('[BATCH] Single image failed:', e.message);
+          return `https://picsum.photos/seed/${Date.now() + i}/1024/1024`;
         }
+      });
+
+      const results = await Promise.allSettled(imagePromises);
+      const images = results
+        .map(r => r.status === 'fulfilled' ? r.value : null)
+        .filter(Boolean);
+
+      while (images.length < 10) {
+        images.push(`https://picsum.photos/seed/${Date.now() + images.length}/1024/1024`);
       }
 
-      console.log(`[BATCH] Generated ${imageUrls.length} image URLs using Pollinations AI (instant URL response)`);
-      res.json({
-        images: imageUrls,
-        caption: caption || headline || "Amazing Product Showcase",
+      console.log(`[BATCH] Done: ${images.length} images`);
+      return res.json({
+        images,
+        caption: caption || headline || 'Product Campaign'
       });
-    } catch (error) {
-      console.error("Batch image generation error:", error);
-      res.status(500).json({
-        error: "Failed to generate images",
-        message: error instanceof Error ? error.message : "Unknown error",
-      });
+
+    } catch (error: any) {
+      console.error('[BATCH] Error:', error.message);
+      const images = Array.from({ length: 10 }, (_, i) =>
+        `https://picsum.photos/seed/${Date.now() + i}/1024/1024`
+      );
+      return res.json({ images, caption: 'Product Campaign' });
     }
   });
 
@@ -697,7 +861,7 @@ Make it catchy, concise, and perfect for platforms like Twitter, Instagram, or L
       // For now, return a placeholder video URL
       // In a production environment, you would use ffmpeg to create a slideshow video
       // This would require downloading images, creating video frames, and encoding
-      
+
       // Placeholder response - in production, implement actual video generation
       // using fluent-ffmpeg or similar library
       const videoUrl = `https://via.placeholder.com/1920x1080/000000/FFFFFF?text=${encodeURIComponent(caption || "Video Slideshow")}`;

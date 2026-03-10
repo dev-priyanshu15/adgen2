@@ -2,8 +2,6 @@ import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { PostGeneratorCard } from '@/components/PostGeneratorCard';
 import { ArrowLeft, ArrowRight, Copy, Check } from 'lucide-react';
 import type { AdCopy, Tone } from '@shared/schema';
@@ -57,61 +55,66 @@ export function SocialPostPage({ adCopy, productName, tone, onBack, onNext }: So
   };
 
   return (
-    <div className="min-h-screen relative overflow-x-hidden bg-background">
+    <div className="min-h-screen relative overflow-x-hidden" style={{ background: 'var(--bg)' }}>
       <div className="relative z-10">
         <div className="w-full max-w-7xl mx-auto px-6 pt-6 pb-6">
           <div className="flex gap-3">
-            <Button onClick={onBack} variant="outline">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
-            <Button
-              onClick={onNext}
-              className="bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 shadow-lg ml-auto"
+            <button
+              onClick={onBack}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-medium transition-colors duration-200"
+              style={{ background: 'var(--surface)', border: '1px solid var(--border-raw)', color: 'var(--text)' }}
             >
-              <ArrowRight className="w-4 h-4 mr-2" />
+              <ArrowLeft className="w-4 h-4" />
+              Back
+            </button>
+            <button
+              onClick={onNext}
+              className="btn-cta ml-auto inline-flex items-center gap-2"
+            >
+              <ArrowRight className="w-4 h-4" />
               Next: Visual Prompts
-            </Button>
+            </button>
           </div>
         </div>
 
         <div className="w-full max-w-7xl mx-auto px-6 pb-20">
-          <h1 className="text-4xl font-bold mb-8">Social Media Post</h1>
+          <h1 className="text-2xl font-semibold mb-8" style={{ color: 'var(--text)' }}>Social Media Post</h1>
           
-          <Card className="p-8 backdrop-blur-xl bg-card/80 border-card-border">
-            <Button
+          <div className="rounded-lg p-8" style={{ background: 'var(--surface)', border: '1px solid var(--border-raw)' }}>
+            <button
               onClick={() => postMutation.mutate()}
               disabled={postMutation.isPending}
-              className="w-full mb-6 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-600/90 hover:to-emerald-600/90"
+              className="btn-cta w-full mb-6"
+              style={{ opacity: postMutation.isPending ? 0.6 : 1 }}
             >
               {postMutation.isPending ? 'Generating...' : 'Generate Social Post'}
-            </Button>
+            </button>
 
             {post && (
               <div className="space-y-4">
-                <div className="bg-background/50 p-6 rounded-lg border border-border">
-                  <p className="text-foreground whitespace-pre-wrap">{post}</p>
+                <div className="p-6 rounded-lg" style={{ background: 'var(--surface2)', border: '1px solid var(--border-raw)' }}>
+                  <p className="whitespace-pre-wrap" style={{ color: 'var(--text-muted)' }}>{post}</p>
                 </div>
-                <Button
+                <button
                   onClick={handleCopy}
-                  variant="outline"
-                  className="w-full"
+                  className="w-full py-2.5 rounded-md text-sm font-medium transition-colors duration-200 inline-flex items-center justify-center gap-2"
+                  style={{ background: 'var(--surface2)', border: '1px solid var(--border-raw)', color: 'var(--text)' }}
                 >
                   {copied ? (
                     <>
-                      <Check className="w-4 h-4 mr-2" />
+                      <Check className="w-4 h-4" />
                       Copied!
                     </>
                   ) : (
                     <>
-                      <Copy className="w-4 h-4 mr-2" />
+                      <Copy className="w-4 h-4" />
                       Copy to Clipboard
                     </>
                   )}
-                </Button>
+                </button>
               </div>
             )}
-          </Card>
+          </div>
 
           <div className="mt-12">
             <PostGeneratorCard productName={productName} tone={tone} adCopy={adCopy} delay={0} />

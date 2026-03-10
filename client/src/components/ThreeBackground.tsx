@@ -1,11 +1,17 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, memo } from 'react';
 import * as THREE from 'three';
 
-export function ThreeBackground() {
+export const ThreeBackground = memo(function ThreeBackground() {
   const mountRef = useRef<HTMLDivElement>(null);
   const [hasWebGL, setHasWebGL] = useState(true);
 
   useEffect(() => {
+    // Respect reduced motion preference
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setHasWebGL(false);
+      return;
+    }
+
     if (!mountRef.current) return;
 
     let renderer: THREE.WebGLRenderer | null = null;
@@ -23,11 +29,11 @@ export function ThreeBackground() {
       try {
         renderer = new THREE.WebGLRenderer({ 
           alpha: true, 
-          antialias: true,
-          failIfMajorPerformanceCaveat: false
+          antialias: false,
+          failIfMajorPerformanceCaveat: true,
+          powerPreference: 'low-power',
         });
       } catch (error) {
-        console.warn('WebGL not available, using fallback background');
         setHasWebGL(false);
         return;
       }
@@ -35,7 +41,7 @@ export function ThreeBackground() {
       if (!renderer) return;
 
       renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
       
       if (mountRef.current) {
         mountRef.current.appendChild(renderer.domElement);
@@ -43,8 +49,9 @@ export function ThreeBackground() {
 
       camera.position.z = 5;
 
+      // Reduced particles: 600 instead of 2000
       const particles = new THREE.BufferGeometry();
-      const particleCount = 2000;
+      const particleCount = 600;
       const positions = new Float32Array(particleCount * 3);
       const colors = new Float32Array(particleCount * 3);
 
@@ -53,46 +60,41 @@ export function ThreeBackground() {
         positions[i + 1] = (Math.random() - 0.5) * 50;
         positions[i + 2] = (Math.random() - 0.5) * 50;
 
-        const purpleBlue = Math.random() > 0.5;
-        if (purpleBlue) {
-          colors[i] = 0.54;
-          colors[i + 1] = 0.36;
-          colors[i + 2] = 0.96;
-        } else {
-          colors[i] = 0.2;
-          colors[i + 1] = 0.6;
-          colors[i + 2] = 1;
-        }
+        // Muted violet tones
+        colors[i] = 0.49;
+        colors[i + 1] = 0.23;
+        colors[i + 2] = 0.93;
       }
 
       particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
       particles.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
       const particleMaterial = new THREE.PointsMaterial({
-        size: 0.05,
+        size: 0.04,
         vertexColors: true,
         transparent: true,
-        opacity: 0.8,
+        opacity: 0.2,
         blending: THREE.AdditiveBlending,
       });
 
       const particleSystem = new THREE.Points(particles, particleMaterial);
       scene.add(particleSystem);
 
+      // Fewer, smaller, more transparent shapes
       const geometries = [
-        new THREE.OctahedronGeometry(0.3),
-        new THREE.TetrahedronGeometry(0.3),
-        new THREE.IcosahedronGeometry(0.3),
+        new THREE.OctahedronGeometry(0.15),
+        new THREE.TetrahedronGeometry(0.15),
+        new THREE.IcosahedronGeometry(0.15),
       ];
 
       const shapes: THREE.Mesh[] = [];
-      for (let i = 0; i < 5; i++) {
-        const geometry = geometries[Math.floor(Math.random() * geometries.length)];
+      for (let i = 0; i < 3; i++) {
+        const geometry = geometries[i % geometries.length];
         const material = new THREE.MeshBasicMaterial({
-          color: Math.random() > 0.5 ? 0x8b5cf6 : 0x3b82f6,
+          color: 0x7c3aed,
           wireframe: true,
           transparent: true,
-          opacity: 0.3,
+          opacity: 0.06,
         });
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.set(
@@ -124,19 +126,20 @@ export function ThreeBackground() {
 
       window.addEventListener('resize', handleResize);
 
+      // Slowed rotation by 40%
       const animate = () => {
         animationId = requestAnimationFrame(animate);
 
-        particleSystem.rotation.y += 0.0005;
-        particleSystem.rotation.x += 0.0002;
+        particleSystem.rotation.y += 0.0003;
+        particleSystem.rotation.x += 0.00012;
 
-        camera.position.x += (mouseX * 0.5 - camera.position.x) * 0.05;
-        camera.position.y += (mouseY * 0.5 - camera.position.y) * 0.05;
+        camera.position.x += (mouseX * 0.3 - camera.position.x) * 0.03;
+        camera.position.y += (mouseY * 0.3 - camera.position.y) * 0.03;
         camera.lookAt(scene.position);
 
         shapes.forEach((shape, index) => {
-          shape.rotation.x += 0.001 * (index + 1);
-          shape.rotation.y += 0.002 * (index + 1);
+          shape.rotation.x += 0.0006 * (index + 1);
+          shape.rotation.y += 0.0012 * (index + 1);
         });
 
         if (renderer) {
@@ -156,6 +159,9 @@ export function ThreeBackground() {
         if (renderer) {
           renderer.dispose();
         }
+        particles.dispose();
+        particleMaterial.dispose();
+        geometries.forEach(g => g.dispose());
       };
     } catch (error) {
       console.error('Three.js initialization error:', error);
@@ -167,11 +173,7 @@ export function ThreeBackground() {
     <div
       ref={mountRef}
       className="fixed inset-0 -z-10"
-      style={{ 
-        background: hasWebGL 
-          ? 'linear-gradient(to bottom, #0a0a0f, #1a0b2e)' 
-          : 'linear-gradient(135deg, #0a0a0f 0%, #1a0b2e 50%, #0f0a1e 100%)'
-      }}
+      style={{ background: 'var(--bg)' }}
     />
   );
-}
+});

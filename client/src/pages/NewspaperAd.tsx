@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Card } from "@/components/ui/card";
+import { Link } from "wouter";
 import { LoadingState } from "@/components/LoadingState";
+import { Zap, ArrowLeft } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
 
 interface NewspaperAdData {
   publication_style: string;
@@ -37,15 +36,7 @@ export default function NewspaperAd() {
     setError("");
 
     try {
-      const response = await fetch("/api/newspaper/ad", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productName, headline, description }),
-      });
-
-      if (!response.ok) throw new Error("Failed to generate newspaper ad");
-
-      const data = await response.json();
+      const data = await apiRequest<NewspaperAdData>("POST", "/api/newspaper/ad", { productName, headline, description });
       setAdData(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
@@ -55,62 +46,153 @@ export default function NewspaperAd() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black p-6">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-bold text-white mb-2">Newspaper Ad Generator</h1>
-        <p className="text-gray-400 mb-8">Create professional newspaper-style advertisements with 3rd party articles</p>
+    <div className="min-h-screen p-10 px-6" style={{ background: '#f0f2f5' }}>
+      <div className="max-w-[700px] mx-auto">
+        {/* Back Button */}
+        <button
+          onClick={() => window.history.back()}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            background: 'white',
+            border: '1px solid #e8eaed',
+            borderRadius: '8px',
+            padding: '8px 16px',
+            fontSize: '14px',
+            color: '#6b7280',
+            cursor: 'pointer',
+            marginBottom: '24px',
+            transition: 'all 0.2s'
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.borderColor = '#ea580c'
+            e.currentTarget.style.color = '#ea580c'
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.borderColor = '#e8eaed'
+            e.currentTarget.style.color = '#6b7280'
+          }}
+        >
+          ← Back
+        </button>
+
+        {/* Title Section */}
+        <div className="mb-8">
+          <div style={{ 
+            fontFamily: "'JetBrains Mono', monospace", 
+            fontSize: '11px', 
+            color: '#ea580c', 
+            letterSpacing: '0.1em', 
+            fontWeight: 700, 
+            marginBottom: '8px', 
+            textTransform: 'uppercase' 
+          }}>
+            NEWSPAPER AD
+          </div>
+          <h1 className="text-[28px] font-bold text-[#111827] mb-1">Newspaper Ad Generator</h1>
+          <p className="text-[14px] text-[#6b7280]">
+            Create professional newspaper-style advertisements
+          </p>
+        </div>
 
         {/* Input Section */}
-        <Card className="bg-gray-800/50 border-gray-700 p-6 mb-8">
-          <div className="space-y-4">
+        <div 
+          className="bg-white p-8 mb-8" 
+          style={{ border: '1px solid #e8eaed', borderRadius: '16px' }}
+        >
+          <div className="space-y-6">
             <div>
-              <label className="block text-white mb-2">Product Name</label>
-              <Input
+              <label style={{ 
+                fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', fontWeight: 600, 
+                letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b7280', 
+                marginBottom: '8px', display: 'block' 
+              }}>
+                Product Name
+              </label>
+              <input
                 value={productName}
                 onChange={(e) => setProductName(e.target.value)}
                 placeholder="e.g., Premium Coffee Maker"
-                className="bg-gray-700 border-gray-600 text-white"
+                className="w-full transition-colors"
+                style={{ 
+                  background: 'white', border: '1px solid #e8eaed', borderRadius: '8px', 
+                  padding: '12px', fontSize: '14px', color: '#111827', outline: 'none'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#ea580c'}
+                onBlur={(e) => e.target.style.borderColor = '#e8eaed'}
               />
             </div>
 
             <div>
-              <label className="block text-white mb-2">Headline</label>
-              <Input
+              <label style={{ 
+                fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', fontWeight: 600, 
+                letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b7280', 
+                marginBottom: '8px', display: 'block' 
+              }}>
+                Headline
+              </label>
+              <input
                 value={headline}
                 onChange={(e) => setHeadline(e.target.value)}
                 placeholder="e.g., Brew Perfect Coffee Every Time"
-                className="bg-gray-700 border-gray-600 text-white"
+                className="w-full transition-colors"
+                style={{ 
+                  background: 'white', border: '1px solid #e8eaed', borderRadius: '8px', 
+                  padding: '12px', fontSize: '14px', color: '#111827', outline: 'none'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#ea580c'}
+                onBlur={(e) => e.target.style.borderColor = '#e8eaed'}
               />
             </div>
 
             <div>
-              <label className="block text-white mb-2">Description</label>
-              <Textarea
+              <label style={{ 
+                fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', fontWeight: 600, 
+                letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b7280', 
+                marginBottom: '8px', display: 'block' 
+              }}>
+                Description
+              </label>
+              <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="e.g., Advanced brewing technology with smart temperature control"
                 rows={3}
-                className="bg-gray-700 border-gray-600 text-white"
+                className="w-full transition-colors resize-none"
+                style={{ 
+                  background: 'white', border: '1px solid #e8eaed', borderRadius: '8px', 
+                  padding: '12px', fontSize: '14px', color: '#111827', outline: 'none'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#ea580c'}
+                onBlur={(e) => e.target.style.borderColor = '#e8eaed'}
               />
             </div>
 
-            <Button
+            <button
               onClick={generateNewspaperAd}
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700"
+              className="w-full transition-all"
+              style={{ 
+                background: '#ea580c', color: 'white', border: 'none', borderRadius: '8px', 
+                padding: '14px', fontSize: '15px', fontWeight: 600, cursor: 'pointer',
+                opacity: loading ? 0.6 : 1
+              }}
+              onMouseOver={(e) => { if (!loading) e.currentTarget.style.background = '#dc4a08'; }}
+              onMouseOut={(e) => { if (!loading) e.currentTarget.style.background = '#ea580c'; }}
             >
-              {loading ? "Generating..." : "Generate Newspaper Ad"}
-            </Button>
+              {loading ? "Generating..." : "Generate Newspaper Ad →"}
+            </button>
 
-            {error && <p className="text-red-500">{error}</p>}
+            {error && <p style={{ color: '#ef4444', fontSize: 13, textAlign: 'center' }}>{error}</p>}
           </div>
-        </Card>
+        </div>
 
         {/* Newspaper Display */}
         {loading && <LoadingState />}
 
-        {adData && (
-          <div className="bg-white text-black p-12 shadow-2xl" style={{ fontFamily: "Georgia, serif" }}>
+        {adData && !loading && (
+          <div className="bg-white text-black p-12 shadow-2xl mb-20" style={{ fontFamily: "Georgia, serif" }}>
             {/* Newspaper Header */}
             <div className="border-b-4 border-black pb-4 mb-6 text-center">
               <h1 className="text-5xl font-bold tracking-wider" style={{ letterSpacing: "0.15em" }}>
@@ -150,7 +232,7 @@ export default function NewspaperAd() {
               </div>
 
               {/* Advertisement Body */}
-              <div className="grid grid-cols-2 gap-8 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
                 <div className="text-justify text-sm leading-relaxed">{adData.body_text}</div>
 
                 {/* Key Features Box */}
@@ -180,30 +262,26 @@ export default function NewspaperAd() {
                 <h3 className="text-2xl font-bold">FEATURED ARTICLE</h3>
               </div>
 
-              <div className="grid grid-cols-3 gap-6">
-                <div className="col-span-2">
-                  <p className="text-justify text-sm leading-relaxed whitespace-pre-wrap first-letter:font-bold first-letter:text-2xl first-letter:float-left first-letter:mr-1 first-letter:mt-1">
-                    {adData.article_content}
-                  </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="md:col-span-2 text-justify text-sm leading-relaxed whitespace-pre-wrap first-letter:font-bold first-letter:text-2xl first-letter:float-left first-letter:mr-1 first-letter:mt-1">
+                  {adData.article_content}
                 </div>
 
                 {/* Right Column - Additional Info */}
-                <div className="border-l-2 border-gray-400 pl-4">
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="font-bold text-sm uppercase mb-2">Publication Style</h4>
-                      <p className="text-xs text-gray-600">{adData.publication_style}</p>
-                    </div>
+                <div className="border-l-0 md:border-l-2 border-gray-400 md:pl-4 space-y-4">
+                  <div>
+                    <h4 className="font-bold text-sm uppercase mb-1">Publication</h4>
+                    <p className="text-xs text-gray-600">{adData.publication_style}</p>
+                  </div>
 
-                    <div>
-                      <h4 className="font-bold text-sm uppercase mb-2">Layout Style</h4>
-                      <p className="text-xs text-gray-600">{adData.layout}</p>
-                    </div>
+                  <div>
+                    <h4 className="font-bold text-sm uppercase mb-1">Layout</h4>
+                    <p className="text-xs text-gray-600">{adData.layout}</p>
+                  </div>
 
-                    <div className="bg-yellow-100 p-3 border border-yellow-400 text-xs">
-                      <p className="font-bold mb-1">SPECIAL OFFER</p>
-                      <p>Limited time availability. Contact advertiser for details.</p>
-                    </div>
+                  <div className="bg-yellow-100 p-3 border border-yellow-400 text-xs">
+                    <p className="font-bold mb-1">SPECIAL OFFER</p>
+                    <p>Limited time availability. Contact advertiser for details.</p>
                   </div>
                 </div>
               </div>
@@ -211,7 +289,7 @@ export default function NewspaperAd() {
 
             {/* Footer */}
             <div className="border-t-2 border-black pt-4 text-center text-xs text-gray-600">
-              <p>© 2025 The Daily Tribune | Published by Independent Media Group | All Rights Reserved</p>
+              <p>© 2025 The Daily Tribune | All Rights Reserved</p>
             </div>
           </div>
         )}

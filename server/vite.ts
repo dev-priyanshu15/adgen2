@@ -40,27 +40,9 @@ export async function setupVite(app: Express, server: Server) {
     appType: "custom",
   });
 
-  // Skip vite middleware for API routes
-  app.use((req, res, next) => {
-    // Only apply vite middleware to non-API routes
-    if (!req.path.startsWith("/api/")) {
-      vite.middlewares(req, res, (err?: any) => {
-        if (err) return next(err);
-        // If vite handled it, don't continue
-        if (res.headersSent) return;
-      });
-    }
-    next();
-  });
-
-  // Only serve HTML for non-API routes  
+  app.use(vite.middlewares);
   app.use("*", async (req, res, next) => {
     const url = req.originalUrl;
-
-    // Skip API routes and other requests that aren't for HTML pages
-    if (req.method !== "GET" || url.startsWith("/api/")) {
-      return next();
-    }
 
     try {
       const clientTemplate = path.resolve(

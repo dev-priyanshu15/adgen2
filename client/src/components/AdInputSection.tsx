@@ -1,14 +1,4 @@
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Sparkles, Zap } from 'lucide-react';
 import type { Tone } from '@shared/schema';
 
@@ -16,6 +6,13 @@ interface AdInputSectionProps {
   onGenerate: (productName: string, tone: Tone) => void;
   isGenerating: boolean;
 }
+
+const tones: { value: Tone; label: string }[] = [
+  { value: 'professional', label: 'Professional' },
+  { value: 'casual', label: 'Casual' },
+  { value: 'urgent', label: 'Urgent' },
+  { value: 'luxury', label: 'Luxury' },
+];
 
 export function AdInputSection({ onGenerate, isGenerating }: AdInputSectionProps) {
   const [productName, setProductName] = useState('');
@@ -29,84 +26,142 @@ export function AdInputSection({ onGenerate, isGenerating }: AdInputSectionProps
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-6 pt-32 pb-20">
-      <div className="text-center mb-12 space-y-4">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4">
-          <Sparkles className="w-4 h-4 text-primary" />
-          <span className="text-sm font-medium text-primary">AI-Powered Campaign Generator</span>
+    <div className="w-full bg-[#f5f7fa] py-24" style={{ borderTop: '1px solid #e8eaed' }}>
+      <div className="max-w-4xl mx-auto px-6">
+        <div className="text-center mb-10">
+          <h2 style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', color: '#ea580c', letterSpacing: '0.08em', fontWeight: 600, marginBottom: '10px' }}>GENERATE CAMPAIGN</h2>
+          <h3 style={{ fontSize: '28px', fontWeight: 700, color: '#111827', marginBottom: '8px', letterSpacing: '-0.02em' }}>Build your ad campaign</h3>
+          <p style={{ fontSize: '14px', color: '#6b7280' }}>Product name in. Full campaign out.</p>
         </div>
-        <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text text-transparent leading-tight">
-          AD GENIUS
-        </h1>
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Transform your product into a complete ad campaign with AI. 
-          Generate copy, visuals, and video ads in seconds.
-        </p>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="relative backdrop-blur-xl bg-card/50 rounded-2xl p-8 border border-card-border shadow-2xl shadow-primary/10">
-          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary/5 to-blue-500/5 pointer-events-none" />
-          
-          <div className="relative space-y-6">
-            <div className="space-y-3">
-              <Label htmlFor="product-name" className="text-sm font-semibold uppercase tracking-wide text-foreground">
-                Product Name
-              </Label>
-              <Input
-                id="product-name"
-                data-testid="input-product-name"
-                placeholder="e.g., Smart Fitness Watch, Eco-Friendly Water Bottle"
-                value={productName}
-                onChange={(e) => setProductName(e.target.value)}
-                className="h-14 text-lg bg-background/50 border-input focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                disabled={isGenerating}
-                required
-              />
-            </div>
-
-            <div className="space-y-3">
-              <Label htmlFor="tone" className="text-sm font-semibold uppercase tracking-wide text-foreground">
-                Ad Tone
-              </Label>
-              <Select value={tone} onValueChange={(value) => setTone(value as Tone)} disabled={isGenerating}>
-                <SelectTrigger 
-                  id="tone" 
-                  data-testid="select-tone"
-                  className="h-14 text-lg bg-background/50 border-input focus:border-primary focus:ring-2 focus:ring-primary/20"
+        
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div
+            className="bg-white rounded-2xl"
+            style={{
+              maxWidth: '680px',
+              margin: '0 auto',
+              border: '1px solid #e8eaed',
+              padding: '36px 40px',
+              boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+              background: '#ffffff'
+            }}
+          >
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <label
+                  htmlFor="product-name"
+                  style={{
+                    fontFamily: "'JetBrains Mono', monospace",
+                    fontSize: 10,
+                    fontWeight: 600,
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    color: 'var(--text-muted)',
+                  }}
                 >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="professional">Professional</SelectItem>
-                  <SelectItem value="casual">Casual</SelectItem>
-                  <SelectItem value="urgent">Urgent</SelectItem>
-                  <SelectItem value="luxury">Luxury</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                  PRODUCT NAME
+                </label>
+                <input
+                  id="product-name"
+                  data-testid="input-product-name"
+                  placeholder="e.g., Smart Fitness Watch, Eco-Friendly Water Bottle"
+                  value={productName}
+                  onChange={(e) => setProductName(e.target.value)}
+                  className="w-full h-14 text-base px-4 rounded-lg outline-none transition-colors"
+                  style={{
+                    background: '#ffffff',
+                    border: '1px solid #e8eaed',
+                    color: 'var(--text)',
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = '#ea580c';
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = '#e8eaed';
+                  }}
+                  disabled={isGenerating}
+                  required
+                />
+              </div>
 
-            <Button
-              type="submit"
-              data-testid="button-generate"
-              disabled={isGenerating || !productName.trim()}
-              className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 shadow-lg shadow-primary/30 transition-all duration-300 hover:shadow-xl hover:shadow-primary/40 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isGenerating ? (
-                <>
-                  <Zap className="w-5 h-5 mr-2 animate-pulse" />
-                  Generating Campaign...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-5 h-5 mr-2" />
-                  Generate Ad Campaign
-                </>
-              )}
-            </Button>
+              <div className="space-y-2">
+                <label
+                  style={{
+                    fontFamily: "'JetBrains Mono', monospace",
+                    fontSize: 10,
+                    fontWeight: 600,
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    color: 'var(--text-muted)',
+                  }}
+                >
+                  AD TONE
+                </label>
+                <div className="grid grid-cols-2 gap-2" data-testid="select-tone">
+                  {tones.map((t) => (
+                    <button
+                      key={t.value}
+                      type="button"
+                      onClick={() => setTone(t.value)}
+                      disabled={isGenerating}
+                      className="py-2.5 px-3 rounded-md transition-all text-center"
+                      style={{
+                        fontFamily: "'JetBrains Mono', monospace",
+                        fontSize: 12,
+                        fontWeight: 500,
+                        letterSpacing: '0.04em',
+                        textTransform: 'uppercase',
+                        background: tone === t.value ? '#ea580c' : 'white',
+                        border: tone === t.value ? '1px solid #ea580c' : '1px solid #e8eaed',
+                        color: tone === t.value ? 'white' : '#374151',
+                        cursor: isGenerating ? 'not-allowed' : 'pointer',
+                      }}
+                      onMouseOver={(e) => {
+                        if (tone !== t.value && !isGenerating) {
+                          e.currentTarget.style.borderColor = '#ea580c';
+                          e.currentTarget.style.color = '#ea580c';
+                        }
+                      }}
+                      onMouseOut={(e) => {
+                        if (tone !== t.value && !isGenerating) {
+                          e.currentTarget.style.borderColor = '#e8eaed';
+                          e.currentTarget.style.color = '#374151';
+                        }
+                      }}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                data-testid="button-generate"
+                disabled={isGenerating || !productName.trim()}
+                className="btn-cta w-full h-14 text-base font-semibold rounded-lg flex items-center justify-center gap-2 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{
+                  background: '#ea580c',
+                  color: 'white',
+                  opacity: 1
+                }}
+              >
+                {isGenerating ? (
+                  <>
+                    <Zap className="w-5 h-5 animate-pulse" />
+                    Generating Campaign...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-5 h-5" />
+                    Generate Ad Campaign
+                  </>
+                )}
+              </button>
+            </div>
           </div>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   );
 }

@@ -21,6 +21,7 @@ export const generateAdRequestSchema = z.object({
 
 export const imageGenerationRequestSchema = z.object({
   prompt: z.string().min(1, "Prompt is required"),
+  productName: z.string().optional(),
 });
 
 export const videoGenerationRequestSchema = z.object({
@@ -44,6 +45,16 @@ export const socialPostsRequestSchema = z.object({
   productName: z.string(),
   headline: z.string(),
   description: z.string(),
+});
+
+export const eventPosterRequestSchema = z.object({
+  eventName: z.string().min(1, "Event name is required"),
+  eventDate: z.string().min(1, "Event date is required"),
+  eventTime: z.string().min(1, "Event time is required"),
+  venue: z.string().min(1, "Venue is required"),
+  description: z.string().min(1, "Description is required"),
+  theme: z.enum(["CORPORATE", "FESTIVAL", "CONCERT", "CONFERENCE"]),
+  primaryColor: z.string().min(1, "Primary color is required"),
 });
 
 export const adCampaignSchema = z.object({
@@ -78,3 +89,4 @@ export type VideoGenerationRequest = z.infer<typeof videoGenerationRequestSchema
 export type AdCampaign = z.infer<typeof adCampaignSchema>;
 export type Campaign = typeof campaigns.$inferSelect;
 export type InsertCampaign = z.infer<typeof insertCampaignSchema>;
+export type EventPosterRequest = z.infer<typeof eventPosterRequestSchema>;

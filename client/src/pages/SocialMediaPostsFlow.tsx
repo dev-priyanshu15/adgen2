@@ -1,6 +1,4 @@
 import { useState, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { LoadingState } from "@/components/LoadingState";
 import { ArrowLeft, Copy, Check, Share2, Download } from "lucide-react";
 
@@ -144,28 +142,28 @@ export default function SocialMediaPostsFlow({ adCopy, productName, onBack, onNe
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen" style={{ background: 'var(--bg)' }}>
       <div className="relative z-10 w-full max-w-7xl mx-auto px-6 py-12">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2 flex items-center gap-3">
-            <Share2 className="w-8 h-8 text-pink-500" />
+          <h1 className="text-2xl font-semibold mb-2" style={{ color: 'var(--text)' }}>
+            <Share2 className="w-6 h-6 inline-block mr-2" style={{ color: 'var(--accent)' }} />
             Social Media Posts & Banner Ad
           </h1>
-          <p className="text-gray-400">Professional banner ads with platform-specific posts</p>
+          <p className="text-sm" style={{ color: 'var(--text-muted)', fontFamily: "'JetBrains Mono', monospace", fontSize: 11 }}>Professional banner ads with platform-specific posts</p>
         </div>
 
         {!posts && !loading && (
-          <Card className="bg-slate-800 border-2 border-slate-700 shadow-2xl p-8 mb-8">
-            <p className="text-gray-300 mb-6">Generate a professional social media banner with platform-specific posts.</p>
-            <Button 
-              onClick={generatePosts} 
-              className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white font-semibold"
+          <div className="rounded-lg p-8 mb-8" style={{ background: 'var(--surface)', border: '1px solid var(--border-raw)' }}>
+            <p className="mb-6" style={{ color: 'var(--text-muted)', fontSize: 14 }}>Generate a professional social media banner with platform-specific posts.</p>
+            <button
+              onClick={generatePosts}
+              className="btn-cta inline-flex items-center gap-2"
             >
-              <Share2 className="w-4 h-4 mr-2" />
+              <Share2 className="w-4 h-4" />
               Generate Banner & Posts
-            </Button>
-            {error && <p className="text-red-500 mt-4 font-semibold">{error}</p>}
-          </Card>
+            </button>
+            {error && <p className="mt-4 text-sm" style={{ color: '#ef4444' }}>{error}</p>}
+          </div>
         )}
 
         {loading && <LoadingState />}
@@ -226,20 +224,21 @@ export default function SocialMediaPostsFlow({ adCopy, productName, onBack, onNe
 
                 {/* Download Banner Buttons */}
                 <div className="flex justify-center my-8 gap-4 flex-wrap">
-                  <Button 
+                  <button
                     onClick={downloadBannerAsImage}
-                    className="bg-black hover:bg-gray-900 text-white font-black py-3 px-8 border-2 border-black text-lg flex items-center gap-2"
+                    className="btn-cta inline-flex items-center gap-2"
                   >
-                    <Download className="w-5 h-5" />
+                    <Download className="w-4 h-4" />
                     Download as PNG
-                  </Button>
-                  <Button 
+                  </button>
+                  <button
                     onClick={downloadBanner}
-                    className="bg-gray-700 hover:bg-gray-800 text-white font-black py-3 px-8 border-2 border-gray-800 text-lg flex items-center gap-2"
+                    className="inline-flex items-center gap-2 px-6 py-2.5 rounded-md text-sm font-medium transition-colors duration-200"
+                    style={{ background: 'var(--surface2)', border: '1px solid var(--border-raw)', color: 'var(--text)' }}
                   >
-                    <Download className="w-5 h-5" />
+                    <Download className="w-4 h-4" />
                     Download Original
-                  </Button>
+                  </button>
                 </div>
 
                 {/* Hashtags Section Below Banner */}
@@ -295,110 +294,110 @@ export default function SocialMediaPostsFlow({ adCopy, productName, onBack, onNe
 
             {/* Platform Posts - Grid Layout */}
             <div className="mb-8">
-              <h2 className="text-2xl font-bold text-white mb-6">Platform-Specific Posts</h2>
+              <h2 className="text-lg font-semibold mb-6" style={{ color: 'var(--text)' }}>Platform-Specific Posts</h2>
               
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Twitter */}
-                <Card className="bg-white border-2 border-gray-300 overflow-hidden shadow-xl">
+                <div className="rounded-lg overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--border-raw)' }}>
                   <div className="p-6">
                     <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
-                        <span className="text-lg text-white">𝕏</span>
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'var(--accent-dim)', border: '1px solid var(--border-raw)' }}>
+                        <span className="text-lg" style={{ color: 'var(--text)' }}>𝕏</span>
                       </div>
                       <div>
-                        <h3 className="text-lg font-bold text-gray-900">Twitter/X</h3>
-                        <p className="text-xs text-gray-600">280 Characters</p>
+                        <h3 className="text-base font-semibold" style={{ color: 'var(--text)' }}>Twitter/X</h3>
+                        <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--text-dim)' }}>280 CHARACTERS</p>
                       </div>
                     </div>
 
-                    <div className="bg-gray-50 rounded-lg p-4 min-h-40 mb-4 border-2 border-gray-200">
-                      <p className="text-gray-800 text-sm leading-relaxed">{posts.twitter.content}</p>
+                    <div className="rounded-lg p-4 min-h-40 mb-4" style={{ background: 'var(--surface2)', border: '1px solid var(--border-raw)' }}>
+                      <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>{posts.twitter.content}</p>
                     </div>
 
-                    <div className="flex flex-wrap gap-1 mb-4">
+                    <div className="flex flex-wrap gap-1.5 mb-4">
                       {posts.twitter.hashtags.slice(0, 4).map((tag, i) => (
-                        <span key={i} className="bg-blue-600 text-white text-xs px-2 py-1 rounded font-semibold">#{tag}</span>
+                        <span key={i} className="px-2 py-0.5 rounded-full text-xs" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, background: 'var(--accent-dim)', color: 'var(--accent)', border: '1px solid var(--border-raw)' }}>#{tag}</span>
                       ))}
                     </div>
 
-                    <Button
+                    <button
                       onClick={() => copyToClipboard(formatTwitterPost(posts.twitter), "twitter")}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold"
-                      size="sm"
+                      className="w-full py-2 rounded-md text-sm font-medium transition-colors duration-200 inline-flex items-center justify-center gap-2"
+                      style={{ background: 'var(--surface2)', border: '1px solid var(--border-raw)', color: 'var(--text)' }}
                     >
-                      {copied === "twitter" ? <Check className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
+                      {copied === "twitter" ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                       {copied === "twitter" ? "Copied!" : "Copy Post"}
-                    </Button>
+                    </button>
                   </div>
-                </Card>
+                </div>
 
                 {/* Instagram */}
-                <Card className="bg-white border-2 border-gray-300 overflow-hidden shadow-xl">
+                <div className="rounded-lg overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--border-raw)' }}>
                   <div className="p-6">
                     <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-600 to-purple-600 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'var(--accent-dim)', border: '1px solid var(--border-raw)' }}>
                         <span className="text-lg">📸</span>
                       </div>
                       <div>
-                        <h3 className="text-lg font-bold text-gray-900">Instagram</h3>
-                        <p className="text-xs text-gray-600">2,200 Characters</p>
+                        <h3 className="text-base font-semibold" style={{ color: 'var(--text)' }}>Instagram</h3>
+                        <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--text-dim)' }}>2,200 CHARACTERS</p>
                       </div>
                     </div>
 
-                    <div className="bg-gray-50 rounded-lg p-4 min-h-40 mb-4 border-2 border-gray-200">
-                      <p className="text-gray-800 text-sm leading-relaxed">{posts.instagram.caption}</p>
+                    <div className="rounded-lg p-4 min-h-40 mb-4" style={{ background: 'var(--surface2)', border: '1px solid var(--border-raw)' }}>
+                      <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>{posts.instagram.caption}</p>
                     </div>
 
-                    <div className="flex flex-wrap gap-1 mb-4">
+                    <div className="flex flex-wrap gap-1.5 mb-4">
                       {posts.instagram.hashtags.slice(0, 4).map((tag, i) => (
-                        <span key={i} className="bg-pink-600 text-white text-xs px-2 py-1 rounded font-semibold">#{tag}</span>
+                        <span key={i} className="px-2 py-0.5 rounded-full text-xs" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, background: 'var(--accent-dim)', color: 'var(--accent)', border: '1px solid var(--border-raw)' }}>#{tag}</span>
                       ))}
                     </div>
 
-                    <Button
+                    <button
                       onClick={() => copyToClipboard(formatInstagramPost(posts.instagram), "instagram")}
-                      className="w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white font-semibold"
-                      size="sm"
+                      className="w-full py-2 rounded-md text-sm font-medium transition-colors duration-200 inline-flex items-center justify-center gap-2"
+                      style={{ background: 'var(--surface2)', border: '1px solid var(--border-raw)', color: 'var(--text)' }}
                     >
-                      {copied === "instagram" ? <Check className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
+                      {copied === "instagram" ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                       {copied === "instagram" ? "Copied!" : "Copy Caption"}
-                    </Button>
+                    </button>
                   </div>
-                </Card>
+                </div>
 
                 {/* LinkedIn */}
-                <Card className="bg-white border-2 border-gray-300 overflow-hidden shadow-xl">
+                <div className="rounded-lg overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--border-raw)' }}>
                   <div className="p-6">
                     <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 rounded-full bg-blue-700 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'var(--accent-dim)', border: '1px solid var(--border-raw)' }}>
                         <span className="text-lg">💼</span>
                       </div>
                       <div>
-                        <h3 className="text-lg font-bold text-gray-900">LinkedIn</h3>
-                        <p className="text-xs text-gray-600">3,000 Characters</p>
+                        <h3 className="text-base font-semibold" style={{ color: 'var(--text)' }}>LinkedIn</h3>
+                        <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: 'var(--text-dim)' }}>3,000 CHARACTERS</p>
                       </div>
                     </div>
 
-                    <div className="bg-gray-50 rounded-lg p-4 min-h-40 mb-4 border-2 border-gray-200">
-                      <p className="text-gray-800 text-sm leading-relaxed">{posts.linkedin.content}</p>
+                    <div className="rounded-lg p-4 min-h-40 mb-4" style={{ background: 'var(--surface2)', border: '1px solid var(--border-raw)' }}>
+                      <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>{posts.linkedin.content}</p>
                     </div>
 
-                    <div className="flex flex-wrap gap-1 mb-4">
+                    <div className="flex flex-wrap gap-1.5 mb-4">
                       {posts.linkedin.hashtags.slice(0, 4).map((tag, i) => (
-                        <span key={i} className="bg-blue-700 text-white text-xs px-2 py-1 rounded font-semibold">#{tag}</span>
+                        <span key={i} className="px-2 py-0.5 rounded-full text-xs" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, background: 'var(--accent-dim)', color: 'var(--accent)', border: '1px solid var(--border-raw)' }}>#{tag}</span>
                       ))}
                     </div>
 
-                    <Button
+                    <button
                       onClick={() => copyToClipboard(formatLinkedInPost(posts.linkedin), "linkedin")}
-                      className="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold"
-                      size="sm"
+                      className="w-full py-2 rounded-md text-sm font-medium transition-colors duration-200 inline-flex items-center justify-center gap-2"
+                      style={{ background: 'var(--surface2)', border: '1px solid var(--border-raw)', color: 'var(--text)' }}
                     >
-                      {copied === "linkedin" ? <Check className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
+                      {copied === "linkedin" ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                       {copied === "linkedin" ? "Copied!" : "Copy Post"}
-                    </Button>
+                    </button>
                   </div>
-                </Card>
+                </div>
               </div>
             </div>
           </>
@@ -407,14 +406,14 @@ export default function SocialMediaPostsFlow({ adCopy, productName, onBack, onNe
         {/* Navigation */}
         {posts && (
           <div className="flex gap-4 pt-8">
-            <Button 
-              onClick={onBack} 
-              variant="outline" 
-              className="border-2 border-gray-600 text-white hover:bg-slate-700"
+            <button
+              onClick={onBack}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-medium transition-colors duration-200"
+              style={{ background: 'var(--surface)', border: '1px solid var(--border-raw)', color: 'var(--text)' }}
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
+              <ArrowLeft className="w-4 h-4" />
               Back
-            </Button>
+            </button>
           </div>
         )}
       </div>

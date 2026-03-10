@@ -1,6 +1,3 @@
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Download, Hash } from 'lucide-react';
 import type { AdCampaign } from '@shared/schema';
 
@@ -27,46 +24,69 @@ export function HashtagsCard({ hashtags, campaign, delay = 0 }: HashtagsCardProp
   };
 
   return (
-    <Card
-      className="p-8 backdrop-blur-xl bg-card/80 border-card-border shadow-2xl shadow-primary/10 hover:shadow-primary/20 transition-all duration-500 animate-fade-in"
-      style={{ animationDelay: `${delay}ms` }}
+    <div
+      className="p-6 rounded-lg animate-fade-in"
+      style={{
+        background: 'var(--surface)',
+        border: '1px solid var(--border-raw)',
+        animationDelay: `${delay}ms`,
+      }}
       data-testid="card-hashtags"
     >
-      <h3 className="text-2xl font-bold text-foreground mb-6">Hashtags & Export</h3>
+      <h3 className="text-lg font-semibold mb-5" style={{ color: 'var(--text)' }}>Hashtags & Export</h3>
       
-      <div className="space-y-6">
+      <div className="space-y-5">
         <div className="space-y-3">
-          <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            <Hash className="w-4 h-4" />
-            <span>Recommended Hashtags</span>
+          <div className="flex items-center gap-2">
+            <Hash className="w-3.5 h-3.5" style={{ color: 'var(--text-dim)' }} />
+            <span style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: 10,
+              fontWeight: 600,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase' as const,
+              color: 'var(--text-dim)',
+            }}>Recommended Hashtags</span>
           </div>
           <div className="flex flex-wrap gap-2">
             {hashtags.map((hashtag, index) => (
-              <Badge
+              <span
                 key={index}
-                variant="secondary"
-                className="px-3 py-1.5 text-sm font-medium"
+                className="px-3 py-1.5 rounded-full"
+                style={{
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: 11,
+                  fontWeight: 500,
+                  background: 'var(--surface2)',
+                  color: 'var(--text-muted)',
+                  border: '1px solid var(--border-raw)',
+                }}
                 data-testid={`hashtag-${index}`}
               >
                 #{hashtag}
-              </Badge>
+              </span>
             ))}
           </div>
         </div>
 
         {campaign && (
-          <div className="pt-4 border-t border-border">
-            <Button
+          <div className="pt-4" style={{ borderTop: '1px solid var(--border-raw)' }}>
+            <button
               onClick={downloadJSON}
               data-testid="button-download-json"
-              className="w-full bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 shadow-lg shadow-primary/20 transition-all duration-300"
+              className="w-full py-3 rounded-md flex items-center justify-center gap-2 text-sm font-medium transition-colors"
+              style={{
+                background: 'var(--surface2)',
+                border: '1px solid var(--border-raw)',
+                color: 'var(--text)',
+              }}
             >
-              <Download className="w-4 h-4 mr-2" />
+              <Download className="w-4 h-4" />
               Download Complete Campaign (JSON)
-            </Button>
+            </button>
           </div>
         )}
       </div>
-    </Card>
+    </div>
   );
 }

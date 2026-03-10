@@ -1,5 +1,3 @@
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { HashtagsCard } from '@/components/HashtagsCard';
 import { ArrowLeft, ArrowRight, Copy, Check } from 'lucide-react';
 import { useState } from 'react';
@@ -23,55 +21,49 @@ export function HashtagsPage({ adCopy, campaign, onBack, onNext }: HashtagsPageP
   };
 
   return (
-    <div className="min-h-screen relative overflow-x-hidden bg-background">
+    <div className="min-h-screen relative overflow-x-hidden" style={{ background: 'var(--bg)' }}>
       <div className="relative z-10">
         <div className="w-full max-w-7xl mx-auto px-6 pt-6 pb-6">
           <div className="flex gap-3">
-            <Button onClick={onBack} variant="outline">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
-            <Button
-              onClick={onNext}
-              className="bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 shadow-lg ml-auto"
+            <button
+              onClick={onBack}
+              className="px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-colors"
+              style={{ background: 'var(--surface)', border: '1px solid var(--border-raw)', color: 'var(--text)' }}
             >
-              <ArrowRight className="w-4 h-4 mr-2" />
+              <ArrowLeft className="w-4 h-4" />
+              Back
+            </button>
+            <button
+              onClick={onNext}
+              className="btn-cta px-6 py-2 rounded-md text-sm font-semibold flex items-center gap-2 ml-auto"
+            >
+              <ArrowRight className="w-4 h-4" />
               Next: Generated Images
-            </Button>
+            </button>
           </div>
         </div>
 
         <div className="w-full max-w-7xl mx-auto px-6 pb-20">
-          <h1 className="text-4xl font-bold mb-8">Hashtags</h1>
+          <h1 className="text-2xl font-semibold mb-8" style={{ color: 'var(--text)' }}>Hashtags</h1>
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
               <HashtagsCard hashtags={adCopy.hashtags} campaign={campaign} delay={0} />
             </div>
 
-            <Card className="p-6 backdrop-blur-xl bg-card/80 border-card-border">
-              <h3 className="font-bold mb-4">Copy Hashtags</h3>
-              <div className="bg-background/50 p-4 rounded mb-4 max-h-96 overflow-y-auto">
-                <p className="text-sm text-muted-foreground break-words">{hashtagText}</p>
+            <div className="p-6 rounded-lg" style={{ background: 'var(--surface)', border: '1px solid var(--border-raw)' }}>
+              <h3 className="font-semibold mb-4" style={{ color: 'var(--text)' }}>Copy Hashtags</h3>
+              <div className="p-4 rounded-md mb-4 max-h-96 overflow-y-auto" style={{ background: 'var(--surface2)' }}>
+                <p className="text-sm break-words" style={{ color: 'var(--text-muted)' }}>{hashtagText}</p>
               </div>
-              <Button
+              <button
                 onClick={handleCopy}
-                variant="outline"
-                className="w-full"
+                className="w-full py-2.5 rounded-md text-sm font-medium flex items-center justify-center gap-2 transition-colors"
+                style={{ background: 'var(--surface2)', border: '1px solid var(--border-raw)', color: 'var(--text)' }}
               >
-                {copied ? (
-                  <>
-                    <Check className="w-4 h-4 mr-2" />
-                    Copied!
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy All
-                  </>
-                )}
-              </Button>
-            </Card>
+                {copied ? <><Check className="w-4 h-4" /> Copied!</> : <><Copy className="w-4 h-4" /> Copy All</>}
+              </button>
+            </div>
           </div>
         </div>
       </div>

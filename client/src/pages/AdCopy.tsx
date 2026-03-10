@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { Button } from '@/components/ui/button';
+
 import { AdInputSection } from '@/components/AdInputSection';
 import { AdCopyCard } from '@/components/AdCopyCard';
 import { LoadingState } from '@/components/LoadingState';
@@ -53,13 +53,13 @@ export function AdCopyPage({ onNext }: AdCopyPageProps) {
         {campaign && !isGenerating && (
           <>
             <div className="w-full max-w-7xl mx-auto px-6 pb-6">
-              <Button
+              <button
                 onClick={() => onNext(campaign)}
-                className="bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 shadow-lg"
+                className="btn-cta px-6 py-3 rounded-md text-sm font-semibold flex items-center gap-2"
               >
-                <ArrowRight className="w-4 h-4 mr-2" />
+                <ArrowRight className="w-4 h-4" />
                 Next: A/B Testing
-              </Button>
+              </button>
             </div>
 
             <div className="w-full max-w-7xl mx-auto px-6 pb-20">

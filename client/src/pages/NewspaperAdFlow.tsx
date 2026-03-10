@@ -1,6 +1,4 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { LoadingState } from "@/components/LoadingState";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
@@ -57,21 +55,21 @@ export default function NewspaperAdFlow({ adCopy, productName, onBack, onNext }:
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black p-6">
+    <div className="min-h-screen p-6" style={{ background: 'var(--bg)' }}>
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-bold text-white mb-2">Newspaper Ad</h1>
-        <p className="text-gray-400 mb-8">Generate a professional newspaper-style advertisement</p>
+        <h1 className="text-2xl font-semibold mb-2" style={{ color: 'var(--text)' }}>Newspaper Ad</h1>
+        <p className="mb-8" style={{ color: 'var(--text-muted)', fontFamily: "'JetBrains Mono', monospace", fontSize: 11 }}>Generate a professional newspaper-style advertisement</p>
 
         {!adData && !loading && (
-          <Card className="bg-gray-800/50 border-gray-700 p-8 mb-8">
-            <p className="text-gray-300 mb-6">
+          <div className="rounded-lg p-8 mb-8" style={{ background: 'var(--surface)', border: '1px solid var(--border-raw)' }}>
+            <p className="mb-6" style={{ color: 'var(--text-muted)', fontSize: 14 }}>
               Create a newspaper ad based on your ad copy details. Click "Generate" to create the ad.
             </p>
-            <Button onClick={generateNewspaperAd} className="bg-blue-600 hover:bg-blue-700 mb-4">
+            <button onClick={generateNewspaperAd} className="btn-cta">
               Generate Newspaper Ad
-            </Button>
-            {error && <p className="text-red-500">{error}</p>}
-          </Card>
+            </button>
+            {error && <p className="mt-4" style={{ color: '#ef4444', fontSize: 13 }}>{error}</p>}
+          </div>
         )}
 
         {loading && <LoadingState />}
@@ -151,14 +149,18 @@ export default function NewspaperAdFlow({ adCopy, productName, onBack, onNext }:
         {/* Navigation Buttons */}
         {adData && (
           <div className="flex gap-4 justify-between">
-            <Button onClick={onBack} variant="outline" className="border-gray-600">
-              <ArrowLeft className="w-4 h-4 mr-2" />
+            <button
+              onClick={onBack}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-medium transition-colors duration-200"
+              style={{ background: 'var(--surface)', border: '1px solid var(--border-raw)', color: 'var(--text)' }}
+            >
+              <ArrowLeft className="w-4 h-4" />
               Back
-            </Button>
-            <Button onClick={onNext} className="bg-blue-600 hover:bg-blue-700">
+            </button>
+            <button onClick={onNext} className="btn-cta inline-flex items-center gap-2">
               Next: Generated Images
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
+              <ArrowRight className="w-4 h-4" />
+            </button>
           </div>
         )}
       </div>

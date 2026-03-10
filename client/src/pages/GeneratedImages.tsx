@@ -24,18 +24,28 @@ export function GeneratedImagesPage({ adCopy, onBack, onNext }: GeneratedImagesP
   const imageMutation = useMutation({
     mutationFn: async (prompt?: string) => {
       // Use custom prompt if provided, otherwise use description or headline
-      const imagePrompt = prompt || customPrompt || adCopy.description || adCopy.headline || 'professional product photography';
+      const imagePrompt = prompt || customPrompt || adCopy?.description || adCopy?.headline || 'professional product photography';
+      const productName = (adCopy as any).productName || ''; // Try to extract productName if available in the adCopy context
       console.log('[IMAGE PAGE] Generating image with prompt:', imagePrompt);
-      const result = await apiRequest<any>('POST', '/api/image/generate', { prompt: imagePrompt });
-      return result.imageUrl;
+      const result = await apiRequest<any>('POST', '/api/image/generate', { prompt: imagePrompt, productName });
+      const url = result?.imageUrl ?? result?.url ?? result?.data?.imageUrl ?? '';
+      return url;
     },
     onSuccess: (url) => {
-      setImageUrl(url);
+      setImageUrl(url || '');
       setShowPromptInput(false);
-      toast({
-        title: 'Image Generated!',
-        description: 'Your image is ready. Click Regenerate to try another.',
-      });
+      if (url) {
+        toast({
+          title: 'Image Generated!',
+          description: 'Your image is ready. Click Regenerate to try another.',
+        });
+      } else {
+        toast({
+          title: 'No image URL',
+          description: 'Server did not return an image URL. Try Regenerate.',
+          variant: 'destructive',
+        });
+      }
     },
     onError: (error: Error) => {
       console.error('[IMAGE PAGE] Generation error:', error);
@@ -48,8 +58,11 @@ export function GeneratedImagesPage({ adCopy, onBack, onNext }: GeneratedImagesP
   });
 
   useEffect(() => {
-    imageMutation.mutate(undefined);
-  }, []);
+    if (adCopy) {
+      setImageUrl('');
+      imageMutation.mutate(undefined);
+    }
+  }, [adCopy.headline, adCopy.description]);
 
   return (
     <div className="min-h-screen relative overflow-x-hidden bg-background">
@@ -74,12 +87,14 @@ export function GeneratedImagesPage({ adCopy, onBack, onNext }: GeneratedImagesP
           <h1 className="text-4xl font-bold mb-8">Generated Images</h1>
           
           {imageMutation.isPending ? (
-            <Card className="p-8 backdrop-blur-xl bg-card/80 border-card-border flex items-center justify-center min-h-96">
-              <div className="text-center">
-                <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-primary" />
-                <p className="text-muted-foreground">Generating image...</p>
-              </div>
-            </Card>
+            <div style={{
+              width: '100%',
+              aspectRatio: '1',
+              borderRadius: '12px',
+              background: 'linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%)',
+              backgroundSize: '200% 100%',
+              animation: 'shimmer 1.5s infinite'
+            }} />
           ) : imageUrl ? (
             <div className="space-y-6">
               <ImageCard imageUrl={imageUrl} isLoading={false} delay={0} />

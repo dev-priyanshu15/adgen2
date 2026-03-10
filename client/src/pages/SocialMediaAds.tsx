@@ -1,10 +1,7 @@
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Card } from '@/components/ui/card';
 import { LoadingState } from '@/components/LoadingState';
 import { Copy, Check, Twitter, Instagram, Linkedin } from 'lucide-react';
+import { apiRequest } from "@/lib/queryClient";
 
 interface SocialPost {
   twitter: {
@@ -51,26 +48,15 @@ export default function SocialMediaAds(props: SocialMediaAdsProps = {}) {
 
     try {
       // Generate posts
-      const postsResponse = await fetch('/api/social/posts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productName, headline, description }),
-      });
-
-      if (!postsResponse.ok) throw new Error('Failed to generate posts');
-      const postsData = await postsResponse.json();
+      const postsData = await apiRequest<SocialPost>('POST', '/api/social/posts', { productName, headline, description });
       setPosts(postsData);
 
       // Generate banner ad
-      const bannerResponse = await fetch('/api/social/banner-ad', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productName, headline, description }),
-      });
-
-      if (bannerResponse.ok) {
-        const bannerData = await bannerResponse.json();
+      try {
+        const bannerData = await apiRequest<any>('POST', '/api/social/banner-ad', { productName, headline, description });
         setBannerImage(bannerData.bannerImage);
+      } catch (bannerErr) {
+        console.warn("Banner generation failed:", bannerErr);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
@@ -101,70 +87,163 @@ export default function SocialMediaAds(props: SocialMediaAdsProps = {}) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black p-6">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-bold text-white mb-2">Social Media Ad Generator</h1>
-        <p className="text-gray-400 mb-8">Create platform-specific posts for Twitter, Instagram, and LinkedIn with banner ads</p>
+    <div className="min-h-screen p-10 px-6" style={{ background: '#f0f2f5' }}>
+      <div className="max-w-[700px] mx-auto">
+        {/* Back Button */}
+        <button
+          onClick={() => window.history.back()}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            background: 'white',
+            border: '1px solid #e8eaed',
+            borderRadius: '8px',
+            padding: '8px 16px',
+            fontSize: '14px',
+            color: '#6b7280',
+            cursor: 'pointer',
+            marginBottom: '24px',
+            transition: 'all 0.2s'
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.borderColor = '#ea580c'
+            e.currentTarget.style.color = '#ea580c'
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.borderColor = '#e8eaed'
+            e.currentTarget.style.color = '#6b7280'
+          }}
+        >
+          ← Back
+        </button>
+
+        {/* Title Section */}
+        <div className="mb-8">
+          <div style={{ 
+            fontFamily: "'JetBrains Mono', monospace", 
+            fontSize: '11px', 
+            color: '#ea580c', 
+            letterSpacing: '0.1em', 
+            fontWeight: 700, 
+            marginBottom: '8px', 
+            textTransform: 'uppercase' 
+          }}>
+            SOCIAL MEDIA
+          </div>
+          <h1 className="text-[28px] font-bold text-[#111827] mb-1">Social Media Ad Generator</h1>
+          <p className="text-[14px] text-[#6b7280]">
+            Create platform-specific posts for Twitter, Instagram, and LinkedIn with banner ads
+          </p>
+        </div>
 
         {/* Input Section */}
-        <Card className="bg-gray-800/50 border-gray-700 p-6 mb-8">
-          <div className="space-y-4">
+        <div 
+          className="bg-white p-8 mb-8" 
+          style={{ border: '1px solid #e8eaed', borderRadius: '16px' }}
+        >
+          <div className="space-y-6">
             <div>
-              <label className="block text-white mb-2">Product Name</label>
-              <Input
+              <label style={{ 
+                fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', fontWeight: 600, 
+                letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b7280', 
+                marginBottom: '8px', display: 'block' 
+              }}>
+                Product Name
+              </label>
+              <input
                 value={productName}
                 onChange={(e) => setProductName(e.target.value)}
                 placeholder="e.g., Premium Coffee Maker"
-                className="bg-gray-700 border-gray-600 text-white"
+                className="w-full transition-colors"
+                style={{ 
+                  background: 'white', border: '1px solid #e8eaed', borderRadius: '8px', 
+                  padding: '12px', fontSize: '14px', color: '#111827', outline: 'none'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#ea580c'}
+                onBlur={(e) => e.target.style.borderColor = '#e8eaed'}
               />
             </div>
 
             <div>
-              <label className="block text-white mb-2">Headline</label>
-              <Input
+              <label style={{ 
+                fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', fontWeight: 600, 
+                letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b7280', 
+                marginBottom: '8px', display: 'block' 
+              }}>
+                Headline
+              </label>
+              <input
                 value={headline}
                 onChange={(e) => setHeadline(e.target.value)}
                 placeholder="e.g., Brew Perfect Coffee Every Time"
-                className="bg-gray-700 border-gray-600 text-white"
+                className="w-full transition-colors"
+                style={{ 
+                  background: 'white', border: '1px solid #e8eaed', borderRadius: '8px', 
+                  padding: '12px', fontSize: '14px', color: '#111827', outline: 'none'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#ea580c'}
+                onBlur={(e) => e.target.style.borderColor = '#e8eaed'}
               />
             </div>
 
             <div>
-              <label className="block text-white mb-2">Description</label>
-              <Textarea
+              <label style={{ 
+                fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', fontWeight: 600, 
+                letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b7280', 
+                marginBottom: '8px', display: 'block' 
+              }}>
+                Description
+              </label>
+              <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="e.g., Advanced brewing technology with smart temperature control"
                 rows={3}
-                className="bg-gray-700 border-gray-600 text-white"
+                className="w-full transition-colors resize-none"
+                style={{ 
+                  background: 'white', border: '1px solid #e8eaed', borderRadius: '8px', 
+                  padding: '12px', fontSize: '14px', color: '#111827', outline: 'none'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#ea580c'}
+                onBlur={(e) => e.target.style.borderColor = '#e8eaed'}
               />
             </div>
 
-            <Button
+            <button
               onClick={generatePosts}
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700"
+              className="w-full transition-all flex items-center justify-center gap-2"
+              style={{ 
+                background: '#ea580c', color: 'white', border: 'none', borderRadius: '8px', 
+                padding: '14px', fontSize: '15px', fontWeight: 600, cursor: 'pointer',
+                opacity: loading ? 0.6 : 1
+              }}
+              onMouseOver={(e) => { if (!loading) { e.currentTarget.style.background = '#dc4a08'; e.currentTarget.style.transform = 'translateY(-1px)'; } }}
+              onMouseOut={(e) => { if (!loading) { e.currentTarget.style.background = '#ea580c'; e.currentTarget.style.transform = 'translateY(0)'; } }}
             >
               {loading ? 'Generating...' : 'Generate Social Media Posts & Banner'}
-            </Button>
+            </button>
 
-            {error && <p className="text-red-500">{error}</p>}
+            {error && <p style={{ color: '#ef4444', fontSize: 13, textAlign: 'center' }}>{error}</p>}
           </div>
-        </Card>
+        </div>
 
         {loading && <LoadingState />}
+      </div>
 
+      <div className="max-w-7xl mx-auto mt-12 px-6">
         {/* Banner Image Display */}
         {bannerImage && (
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-white mb-4">Banner Ad Image</h2>
-            <Card className="bg-gray-800/50 border-gray-700 p-4">
+            <h2 className="text-lg font-semibold mb-4" style={{ color: '#111827' }}>Banner Ad Image</h2>
+            <div className="rounded-lg p-4" style={{ background: 'white', border: '1px solid #e8eaed' }}>
               <img
                 src={bannerImage}
                 alt="Social Media Banner Ad"
-                className="w-full rounded-lg shadow-lg max-h-96 object-cover"
+                className="w-full rounded-lg max-h-96 object-cover"
               />
-            </Card>
+            </div>
           </div>
         )}
 
@@ -172,124 +251,97 @@ export default function SocialMediaAds(props: SocialMediaAdsProps = {}) {
         {posts && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Twitter Post */}
-            <Card className="bg-gradient-to-br from-blue-900/50 to-blue-800/50 border-blue-700 p-6">
+            <div className="rounded-lg p-6" style={{ background: 'var(--surface)', border: '1px solid var(--border-raw)' }}>
               <div className="flex items-center gap-2 mb-4">
-                <Twitter className="w-5 h-5 text-blue-400" />
-                <h3 className="text-xl font-bold text-white">Twitter/X</h3>
+                <Twitter className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+                <h3 className="text-base font-semibold" style={{ color: 'var(--text)' }}>Twitter/X</h3>
               </div>
 
               <div className="space-y-4">
-                <div className="bg-gray-900/50 rounded-lg p-4 min-h-32">
-                  <p className="text-white whitespace-pre-wrap text-sm leading-relaxed">
+                <div className="rounded-lg p-4 min-h-32" style={{ background: 'var(--surface2)', border: '1px solid var(--border-raw)' }}>
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
                     {posts.twitter.content}
                   </p>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5">
                   {posts.twitter.hashtags.map((tag, i) => (
-                    <span key={i} className="text-blue-400 text-xs">#{tag}</span>
+                    <span key={i} className="text-xs" style={{ color: 'var(--accent)', fontFamily: "'JetBrains Mono', monospace", fontSize: 11 }}>#{tag}</span>
                   ))}
                 </div>
 
-                <Button
+                <button
                   onClick={() => copyToClipboard(formatTwitterPost(posts.twitter), 'twitter')}
-                  variant="outline"
-                  className="w-full border-blue-600 text-blue-400 hover:bg-blue-600/20"
+                  className="w-full py-2 rounded-md text-sm font-medium transition-colors duration-200 inline-flex items-center justify-center gap-2"
+                  style={{ background: 'var(--surface2)', border: '1px solid var(--border-raw)', color: 'var(--text)' }}
                 >
-                  {copied === 'twitter' ? (
-                    <>
-                      <Check className="w-4 h-4 mr-2" />
-                      Copied!
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-4 h-4 mr-2" />
-                      Copy Post
-                    </>
-                  )}
-                </Button>
+                  {copied === 'twitter' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  {copied === 'twitter' ? 'Copied!' : 'Copy Post'}
+                </button>
               </div>
-            </Card>
+            </div>
 
             {/* Instagram Post */}
-            <Card className="bg-gradient-to-br from-pink-900/50 to-purple-900/50 border-pink-700 p-6">
+            <div className="rounded-lg p-6" style={{ background: 'var(--surface)', border: '1px solid var(--border-raw)' }}>
               <div className="flex items-center gap-2 mb-4">
-                <Instagram className="w-5 h-5 text-pink-400" />
-                <h3 className="text-xl font-bold text-white">Instagram</h3>
+                <Instagram className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+                <h3 className="text-base font-semibold" style={{ color: 'var(--text)' }}>Instagram</h3>
               </div>
 
               <div className="space-y-4">
-                <div className="bg-gray-900/50 rounded-lg p-4 min-h-32">
-                  <p className="text-white whitespace-pre-wrap text-sm leading-relaxed">
+                <div className="rounded-lg p-4 min-h-32" style={{ background: 'var(--surface2)', border: '1px solid var(--border-raw)' }}>
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
                     {posts.instagram.caption}
                   </p>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5">
                   {posts.instagram.hashtags.map((tag, i) => (
-                    <span key={i} className="text-pink-400 text-xs">#{tag}</span>
+                    <span key={i} className="text-xs" style={{ color: 'var(--accent)', fontFamily: "'JetBrains Mono', monospace", fontSize: 11 }}>#{tag}</span>
                   ))}
                 </div>
 
-                <Button
+                <button
                   onClick={() => copyToClipboard(formatInstagramPost(posts.instagram), 'instagram')}
-                  variant="outline"
-                  className="w-full border-pink-600 text-pink-400 hover:bg-pink-600/20"
+                  className="w-full py-2 rounded-md text-sm font-medium transition-colors duration-200 inline-flex items-center justify-center gap-2"
+                  style={{ background: 'var(--surface2)', border: '1px solid var(--border-raw)', color: 'var(--text)' }}
                 >
-                  {copied === 'instagram' ? (
-                    <>
-                      <Check className="w-4 h-4 mr-2" />
-                      Copied!
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-4 h-4 mr-2" />
-                      Copy Caption
-                    </>
-                  )}
-                </Button>
+                  {copied === 'instagram' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  {copied === 'instagram' ? 'Copied!' : 'Copy Caption'}
+                </button>
               </div>
-            </Card>
+            </div>
 
             {/* LinkedIn Post */}
-            <Card className="bg-gradient-to-br from-blue-900/50 to-slate-900/50 border-blue-700 p-6">
+            <div className="rounded-lg p-6" style={{ background: 'var(--surface)', border: '1px solid var(--border-raw)' }}>
               <div className="flex items-center gap-2 mb-4">
-                <Linkedin className="w-5 h-5 text-blue-300" />
-                <h3 className="text-xl font-bold text-white">LinkedIn</h3>
+                <Linkedin className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+                <h3 className="text-base font-semibold" style={{ color: 'var(--text)' }}>LinkedIn</h3>
               </div>
 
               <div className="space-y-4">
-                <div className="bg-gray-900/50 rounded-lg p-4 min-h-32">
-                  <p className="text-white whitespace-pre-wrap text-sm leading-relaxed">
+                <div className="rounded-lg p-4 min-h-32" style={{ background: 'var(--surface2)', border: '1px solid var(--border-raw)' }}>
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
                     {posts.linkedin.content}
                   </p>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5">
                   {posts.linkedin.hashtags.map((tag, i) => (
-                    <span key={i} className="text-blue-300 text-xs">#{tag}</span>
+                    <span key={i} className="text-xs" style={{ color: 'var(--accent)', fontFamily: "'JetBrains Mono', monospace", fontSize: 11 }}>#{tag}</span>
                   ))}
                 </div>
 
-                <Button
+                <button
                   onClick={() => copyToClipboard(formatLinkedInPost(posts.linkedin), 'linkedin')}
-                  variant="outline"
-                  className="w-full border-blue-600 text-blue-300 hover:bg-blue-600/20"
+                  className="w-full py-2 rounded-md text-sm font-medium transition-colors duration-200 inline-flex items-center justify-center gap-2"
+                  style={{ background: 'var(--surface2)', border: '1px solid var(--border-raw)', color: 'var(--text)' }}
                 >
-                  {copied === 'linkedin' ? (
-                    <>
-                      <Check className="w-4 h-4 mr-2" />
-                      Copied!
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-4 h-4 mr-2" />
-                      Copy Post
-                    </>
-                  )}
-                </Button>
+                  {copied === 'linkedin' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  {copied === 'linkedin' ? 'Copied!' : 'Copy Post'}
+                </button>
               </div>
-            </Card>
+            </div>
           </div>
         )}
       </div>

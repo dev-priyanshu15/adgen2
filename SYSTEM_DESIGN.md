@@ -320,7 +320,7 @@ HUGGINGFACE_API_KEY=xxx
 GEMINI_API_KEY=xxx
 REPLICATE_API_TOKEN=xxx
 STABILITY_API_KEY=xxx
-POLLINATIONS_API_KEY=xxx  # Optional - for higher rate limits (Pollinations AI is free without key)
+
 
 # Database
 DATABASE_URL=postgresql://...

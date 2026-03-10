@@ -1,7 +1,5 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Trash2, Calendar, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -48,8 +46,8 @@ export function CampaignHistory({ onLoadCampaign }: CampaignHistoryProps) {
 
   if (isLoading) {
     return (
-      <div className="p-6 text-center text-muted-foreground">
-        <p className="text-sm">Loading campaigns...</p>
+      <div className="p-6 text-center">
+        <p className="text-sm" style={{ color: 'var(--text-dim)' }}>Loading campaigns...</p>
       </div>
     );
   }
@@ -57,9 +55,9 @@ export function CampaignHistory({ onLoadCampaign }: CampaignHistoryProps) {
   if (campaigns.length === 0) {
     return (
       <div className="p-6 text-center">
-        <Sparkles className="w-12 h-12 mx-auto mb-3 text-muted-foreground opacity-50" />
-        <p className="text-sm text-muted-foreground">No saved campaigns yet</p>
-        <p className="text-xs text-muted-foreground mt-1">
+        <Sparkles className="w-10 h-10 mx-auto mb-3 opacity-30" style={{ color: 'var(--text-dim)' }} />
+        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>No saved campaigns yet</p>
+        <p className="mt-1" style={{ fontSize: 11, color: 'var(--text-dim)' }}>
           Generate and save your first campaign to see it here
         </p>
       </div>
@@ -70,36 +68,39 @@ export function CampaignHistory({ onLoadCampaign }: CampaignHistoryProps) {
     <ScrollArea className="h-full">
       <div className="p-4 space-y-3">
         {campaigns.map((campaign: Campaign) => (
-          <Card
+          <div
             key={campaign.id}
-            className="p-4 cursor-pointer backdrop-blur-xl bg-card/80 border-card-border hover-elevate active-elevate-2 transition-all"
+            className="p-4 cursor-pointer rounded-lg transition-colors duration-200"
+            style={{ background: 'var(--surface)', border: '1px solid var(--border-raw)' }}
             onClick={() => onLoadCampaign(campaign)}
             data-testid={`campaign-history-${campaign.id}`}
           >
             <div className="flex items-start justify-between gap-2 mb-2">
-              <h4 className="font-semibold text-sm text-foreground line-clamp-1">
+              <h4 className="font-semibold text-sm line-clamp-1" style={{ color: 'var(--text)' }}>
                 {campaign.productName}
               </h4>
-              <Button
-                size="sm"
-                variant="ghost"
+              <button
                 data-testid={`button-delete-campaign-${campaign.id}`}
                 onClick={(e) => handleDelete(e, campaign.id)}
-                className="hover-elevate active-elevate-2 flex-shrink-0 h-7 w-7 p-0"
+                className="flex-shrink-0 p-1 rounded transition-colors duration-200"
+                style={{ color: 'var(--text-dim)', background: 'transparent', border: 'none' }}
               >
                 <Trash2 className="w-3 h-3" />
-              </Button>
+              </button>
             </div>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--text-dim)' }}>
               <Calendar className="w-3 h-3" />
               <span>
                 {new Date(campaign.createdAt).toLocaleDateString()}
               </span>
-              <span className="px-2 py-0.5 rounded bg-primary/10 text-primary text-xs capitalize">
+              <span
+                className="px-2 py-0.5 rounded text-xs capitalize"
+                style={{ background: 'var(--accent-dim)', color: 'var(--accent)', fontFamily: "'JetBrains Mono', monospace", fontSize: 10 }}
+              >
                 {campaign.tone}
               </span>
             </div>
-          </Card>
+          </div>
         ))}
       </div>
     </ScrollArea>

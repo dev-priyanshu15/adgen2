@@ -84,7 +84,7 @@ export default function VideoScriptPage({
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
             </Button>
-            <h1 className="ml-auto text-2xl font-bold text-white">Video Script Generator</h1>
+            <h1 className="ml-auto text-2xl font-bold text-white">Video Script Generator (Soon)</h1>
           </div>
         </div>
 

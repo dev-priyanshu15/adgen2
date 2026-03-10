@@ -1,5 +1,3 @@
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Copy, Check } from 'lucide-react';
 import { useState } from 'react';
 import type { AdCopy } from '@shared/schema';
@@ -18,83 +16,94 @@ export function AdCopyCard({ adCopy, delay = 0 }: AdCopyCardProps) {
     setTimeout(() => setCopied(null), 2000);
   };
 
+  const CopyBtn = ({ id, text }: { id: string; text: string }) => (
+    <button
+      onClick={() => copyToClipboard(text, id)}
+      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded"
+      style={{ color: 'var(--text-dim)' }}
+      data-testid={`button-copy-${id}`}
+    >
+      {copied === id ? <Check className="w-3 h-3" style={{ color: '#22c55e' }} /> : <Copy className="w-3 h-3" />}
+    </button>
+  );
+
   return (
-    <Card
-      className="p-8 backdrop-blur-xl bg-card/80 border-card-border shadow-2xl shadow-primary/10 hover:shadow-primary/20 transition-all duration-500 lg:col-span-2 animate-fade-in"
-      style={{ animationDelay: `${delay}ms` }}
+    <div
+      className="group p-6 rounded-lg lg:col-span-2 animate-fade-in"
+      style={{
+        background: 'var(--surface)',
+        border: '1px solid var(--border-raw)',
+        animationDelay: `${delay}ms`,
+      }}
       data-testid="card-ad-copy"
     >
-      <div className="flex items-start justify-between mb-6">
-        <h3 className="text-2xl font-bold text-foreground">Main Ad Copy</h3>
-        <Button
-          size="sm"
-          variant="ghost"
-          data-testid="button-copy-all"
+      <div className="flex items-start justify-between mb-5">
+        <h3 className="text-lg font-semibold" style={{ color: 'var(--text)' }}>Main Ad Copy</h3>
+        <button
           onClick={() => copyToClipboard(
             `${adCopy.headline}\n\n${adCopy.description}\n\n${adCopy.callToAction}`,
             'all'
           )}
-          className="hover-elevate active-elevate-2"
+          className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded"
+          style={{ color: 'var(--text-dim)' }}
+          data-testid="button-copy-all"
         >
-          {copied === 'all' ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
-        </Button>
+          {copied === 'all' ? <Check className="w-4 h-4" style={{ color: '#22c55e' }} /> : <Copy className="w-4 h-4" />}
+        </button>
       </div>
 
-      <div className="space-y-6">
-        <div className="space-y-2">
+      <div className="space-y-5">
+        <div className="space-y-1.5 group">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Headline</span>
-            <Button
-              size="sm"
-              variant="ghost"
-              data-testid="button-copy-headline"
-              onClick={() => copyToClipboard(adCopy.headline, 'headline')}
-              className="h-8 hover-elevate active-elevate-2"
-            >
-              {copied === 'headline' ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
-            </Button>
+            <span style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: 10,
+              fontWeight: 600,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase' as const,
+              color: 'var(--text-dim)',
+            }}>Headline</span>
+            <CopyBtn id="headline" text={adCopy.headline} />
           </div>
-          <p className="text-2xl font-bold text-foreground leading-tight" data-testid="text-headline">
+          <p className="text-xl font-semibold leading-tight" style={{ color: 'var(--text)' }} data-testid="text-headline">
             {adCopy.headline}
           </p>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-1.5 group">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Description</span>
-            <Button
-              size="sm"
-              variant="ghost"
-              data-testid="button-copy-description"
-              onClick={() => copyToClipboard(adCopy.description, 'description')}
-              className="h-8 hover-elevate active-elevate-2"
-            >
-              {copied === 'description' ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
-            </Button>
+            <span style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: 10,
+              fontWeight: 600,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase' as const,
+              color: 'var(--text-dim)',
+            }}>Description</span>
+            <CopyBtn id="description" text={adCopy.description} />
           </div>
-          <p className="text-base text-muted-foreground leading-relaxed" data-testid="text-description">
+          <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }} data-testid="text-description">
             {adCopy.description}
           </p>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-1.5 group">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Call to Action</span>
-            <Button
-              size="sm"
-              variant="ghost"
-              data-testid="button-copy-cta"
-              onClick={() => copyToClipboard(adCopy.callToAction, 'cta')}
-              className="h-8 hover-elevate active-elevate-2"
-            >
-              {copied === 'cta' ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
-            </Button>
+            <span style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: 10,
+              fontWeight: 600,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase' as const,
+              color: 'var(--text-dim)',
+            }}>Call to Action</span>
+            <CopyBtn id="cta" text={adCopy.callToAction} />
           </div>
-          <p className="text-base text-muted-foreground" data-testid="text-cta">
+          <p className="text-sm" style={{ color: 'var(--text-muted)' }} data-testid="text-cta">
             {adCopy.callToAction}
           </p>
         </div>
       </div>
-    </Card>
+    </div>
   );
 }

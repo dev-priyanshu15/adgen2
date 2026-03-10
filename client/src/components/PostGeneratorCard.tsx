@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { apiRequest } from '@/lib/queryClient';
 
 export function PostGeneratorCard({ productName, tone, adCopy, delay = 100 }: any) {
@@ -25,24 +23,44 @@ export function PostGeneratorCard({ productName, tone, adCopy, delay = 100 }: an
   };
 
   return (
-    <Card
-      className="p-4 backdrop-blur-xl bg-card/80 border-card-border rounded-2xl shadow-md animate-fade-in"
-      style={{ animationDelay: `${delay}ms` }}
+    <div
+      className="p-5 rounded-lg animate-fade-in"
+      style={{
+        background: 'var(--surface)',
+        border: '1px solid var(--border-raw)',
+        animationDelay: `${delay}ms`,
+      }}
     >
-      <h3 className="text-lg font-semibold mb-2">Social Post</h3>
-      <p className="text-sm text-muted-foreground mb-3">Generate a short social post based on the ad copy.</p>
+      <h3 className="text-base font-semibold mb-1" style={{ color: 'var(--text)' }}>Social Post</h3>
+      <p className="text-sm mb-3" style={{ color: 'var(--text-muted)' }}>Generate a short social post based on the ad copy.</p>
 
       <div className="mb-3">
-        <Button onClick={generatePost} disabled={loading} className="w-full">
+        <button
+          onClick={generatePost}
+          disabled={loading}
+          className="w-full py-2.5 rounded-md text-sm font-medium transition-colors disabled:opacity-40"
+          style={{
+            background: 'var(--surface2)',
+            border: '1px solid var(--border-raw)',
+            color: 'var(--text)',
+          }}
+        >
           {loading ? 'Generating...' : 'Generate Post'}
-        </Button>
+        </button>
       </div>
 
       {post && (
-        <div className="mt-2 p-3 bg-card/80 border border-border rounded-lg text-sm break-words">
+        <div
+          className="mt-2 p-3 rounded-md text-sm break-words"
+          style={{
+            background: 'var(--surface2)',
+            border: '1px solid var(--border-raw)',
+            color: 'var(--text-muted)',
+          }}
+        >
           {post}
         </div>
       )}
-    </Card>
+    </div>
   );
 }
