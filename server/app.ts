@@ -1,7 +1,14 @@
 import express from "express";
+import cors from "cors";
 import { log } from "./utils";
 
 const app = express();
+
+// Enable CORS for all origins in production, or specific ones if needed
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
 
 declare module 'http' {
   interface IncomingMessage {

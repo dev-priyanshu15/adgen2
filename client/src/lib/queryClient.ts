@@ -12,12 +12,8 @@ export async function apiRequest<T = any>(
   url: string,
   data?: unknown | undefined,
 ): Promise<T> {
-  // Allow overriding the API base URL when running the client separately
-  // (e.g. `VITE_API_BASE=http://localhost:5001 npx vite`). Defaults to
-  // http://localhost:5000 for dev server
   const apiBase = (import.meta as any).env?.VITE_API_BASE || '';
-  console.log(`[API-REQ] Fetching: ${apiBase}${url}`, { method, data });
-
+  
   const res = await fetch(apiBase + url, {
     method,
     headers: data ? { "Content-Type": "application/json" } : {},
@@ -26,8 +22,6 @@ export async function apiRequest<T = any>(
   });
 
   await throwIfResNotOk(res);
-  const contentType = res.headers.get("content-type");
-  console.log(`[API-REQ] Response status: ${res.status}, Content-Type: ${contentType}`);
   return await res.json();
 }
 
@@ -37,7 +31,9 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey.join("/") as string, {
+    const apiBase = (import.meta as any).env?.VITE_API_BASE || '';
+    const url = queryKey.join("/") as string;
+    const res = await fetch(apiBase + (url.startsWith('/') ? url : '/' + url), {
       credentials: "include",
     });
 
