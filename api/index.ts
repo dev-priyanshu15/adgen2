@@ -1,4 +1,4 @@
-import { app } from "../server/index";
+import app from "../server/app";
 import { registerRoutes } from "../server/routes";
 
 let routesRegistered = false;
