@@ -17,18 +17,26 @@ import {
   eventPosterRequestSchema,
 } from "@shared/schema";
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
+// Lazy initializers for AI clients to avoid crashes if keys are missing during startup
+const getGroq = () => {
+  if (!process.env.GROQ_API_KEY) throw new Error("GROQ_API_KEY is not configured");
+  return new Groq({ apiKey: process.env.GROQ_API_KEY });
+};
 
-const replicate = new Replicate({
-  auth: process.env.REPLICATE_API_TOKEN,
-});
+const getReplicate = () => {
+  if (!process.env.REPLICATE_API_TOKEN) throw new Error("REPLICATE_API_TOKEN is not configured");
+  return new Replicate({ auth: process.env.REPLICATE_API_TOKEN });
+};
 
-const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
+const getHf = () => {
+  if (!process.env.HUGGINGFACE_API_KEY) throw new Error("HUGGINGFACE_API_KEY is not configured");
+  return new HfInference(process.env.HUGGINGFACE_API_KEY);
+};
 
-// Initialize Gemini AI if API key is available
-const genAI = process.env.GEMINI_API_KEY ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY) : null;
+const getGenAI = () => {
+  if (!process.env.GEMINI_API_KEY) return null;
+  return new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+};
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Health check endpoint
@@ -95,6 +103,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/ad/generate", async (req, res) => {
     console.log("[AD-GEN] Ad generation endpoint called with body:", req.body);
     try {
+      const groq = getGroq();
       if (!process.env.GROQ_API_KEY) {
         throw new Error("GROQ_API_KEY is not configured");
       }
@@ -212,6 +221,7 @@ Example format:
       }
 
       console.log('[IMG-GEN] Generating with OpenRouter Free FLUX...');
+      if (!process.env.OPENROUTER_API_KEY) throw new Error("OPENROUTER_API_KEY is not configured");
 
       // Build a prompt that forces the subject to be the product explicitly
       const finalPrompt = productName
@@ -261,6 +271,7 @@ Example format:
     try {
       const validatedData = videoGenerationRequestSchema.parse(req.body);
       const { prompt } = validatedData;
+      const replicate = getReplicate();
 
       const output = await replicate.run(
         "lucataco/animate-diff:1531004ee4c98894ab11f8a4ce6206099e732c1da15121508a24b41b35d215ab",
@@ -347,8 +358,10 @@ Example format:
 
   app.post("/api/video/script", async (req, res) => {
     try {
+      const videoScriptRequestSchema = (await import("@shared/schema")).videoScriptRequestSchema;
       const validatedData = videoScriptRequestSchema.parse(req.body);
       const { productName, headline, description, callToAction } = validatedData;
+      const groq = getGroq();
 
       const prompt = `You are an expert video scriptwriter for advertising. Create a professional video script for:
 
@@ -397,7 +410,7 @@ Example format:
             content: prompt,
           },
         ],
-        model: "llama-3.1-8b-instant",
+        model: "llama-3.3-70b-versatile",
         temperature: 0.7,
         max_tokens: 2000,
       });
@@ -465,6 +478,7 @@ Example format:
   "layout": "two column"
 }`;
 
+      const groq = getGroq();
       const completion = await groq.chat.completions.create({
         messages: [
           {
@@ -535,6 +549,7 @@ Example format:
   }
 }`;
 
+      const groq = getGroq();
       const completion = await groq.chat.completions.create({
         messages: [
           {
@@ -602,6 +617,7 @@ Example format:
       Return ONLY raw JSON. No markdown. No chatter.`;
 
       console.log("[EVENT-POSTER] Calling Groq with JSON mode...");
+      const groq = getGroq();
       const completion = await groq.chat.completions.create({
         messages: [{ role: "user", content: prompt }],
         model: "llama-3.1-8b-instant",
@@ -741,6 +757,7 @@ Make it catchy, concise, and perfect for platforms like Twitter, Instagram, or L
         return res.status(400).json({ error: "Prompt or productName is required" });
       }
 
+      const groq = getGroq();
       const completion = await groq.chat.completions.create({
         messages: [
           {
